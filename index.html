@@ -3,58 +3,161 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>智慧养老健康监测 — 原型 & UI 展示</title>
+<title>智慧养老健康监测 — 原型 & UI & 后台展示</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background: #0B1120;
     color: #F1F5F9;
-    display: flex; align-items: center; justify-content: center;
     min-height: 100vh;
     background-image: radial-gradient(ellipse at 50% 0%, rgba(59,130,246,.1) 0%, transparent 60%);
+    padding: 40px 20px;
   }
-  .container { text-align: center; padding: 40px 20px; max-width: 600px; }
-  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
-  .subtitle { color: #94A3B8; font-size: 15px; margin-bottom: 48px; }
-  .cards { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+  .container { max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; text-align: center; }
+  .subtitle { color: #94A3B8; font-size: 15px; margin-bottom: 48px; text-align: center; }
+
+  .section { margin-bottom: 48px; }
+  .section-title { font-size: 18px; font-weight: 600; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #334155; }
+
+  .cards { display: flex; gap: 16px; flex-wrap: wrap; }
   .card {
-    flex: 1; min-width: 240px; max-width: 280px;
-    background: #1E293B; border: 1px solid #334155; border-radius: 16px;
-    padding: 32px 24px; cursor: pointer; transition: all .2s;
+    flex: 1; min-width: 200px;
+    background: #1E293B; border: 1px solid #334155; border-radius: 12px;
+    padding: 24px; cursor: pointer; transition: all .2s;
     text-decoration: none; color: inherit; display: block;
   }
   .card:hover { border-color: #3B82F6; box-shadow: 0 0 30px rgba(59,130,246,.15); transform: translateY(-2px); }
-  .card .icon { font-size: 48px; margin-bottom: 16px; display: block; }
-  .card h2 { font-size: 20px; margin-bottom: 8px; }
-  .card p { font-size: 13px; color: #94A3B8; line-height: 1.6; }
-  .tag { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; margin-top: 12px; }
+  .card .icon { font-size: 36px; margin-bottom: 12px; display: block; }
+  .card h3 { font-size: 16px; margin-bottom: 6px; }
+  .card p { font-size: 12px; color: #94A3B8; line-height: 1.5; }
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 10px; margin-top: 8px; }
   .tag-ui { background: rgba(59,130,246,.15); color: #3B82F6; border: 1px solid rgba(59,130,246,.3); }
   .tag-proto { background: rgba(148,163,184,.15); color: #94A3B8; border: 1px solid rgba(148,163,184,.3); }
-  .footer { margin-top: 48px; font-size: 12px; color: #64748B; }
+  .tag-admin { background: rgba(139,92,246,.15); color: #8B5CF6; border: 1px solid rgba(139,92,246,.3); }
+
+  .accounts-box {
+    background: #1E293B; border: 1px solid #334155; border-radius: 12px;
+    padding: 24px; margin-top: 16px;
+  }
+  .accounts-box h4 { font-size: 14px; margin-bottom: 16px; color: #94A3B8; }
+  .account-table { width: 100%; border-collapse: collapse; }
+  .account-table th { text-align: left; padding: 8px 12px; font-size: 10px; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #334155; }
+  .account-table td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid rgba(51,65,85,.4); }
+  .account-table code {
+    background: rgba(59,130,246,.1); color: #60A5FA; padding: 3px 8px;
+    border-radius: 4px; font-size: 12px; font-family: 'SF Mono', 'Consolas', monospace;
+  }
+  .account-table .role-tag {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 500;
+  }
+  .role-super { background: rgba(239,68,68,.15); color: #F87171; }
+  .role-admin { background: rgba(59,130,246,.15); color: #60A5FA; }
+  .role-doctor { background: rgba(16,185,129,.15); color: #34D399; }
+
+  .footer { margin-top: 48px; text-align: center; font-size: 12px; color: #64748B; line-height: 1.8; }
+  .footer a { color: #3B82F6; text-decoration: none; }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>🏥 智慧养老健康监测</h1>
-  <p class="subtitle">交互展示 · 22 个页面 · 可点击导航</p>
+  <p class="subtitle">交互展示 · 22 页面 · 后台管理 · 可点击导航</p>
 
-  <div class="cards">
-    <a href="interactive-ui.html" class="card">
-      <span class="icon">🎨</span>
-      <h2>UI 交互展示</h2>
-      <p>暗色科技风主题<br>真实 UI 视觉效果<br>渐变、发光、毛玻璃</p>
-      <span class="tag tag-ui">推荐演示用</span>
-    </a>
-    <a href="interactive-prototype.html" class="card">
-      <span class="icon">📐</span>
-      <h2>原型交互展示</h2>
-      <p>线框风格原型图<br>灰度配色 + 虚线边框<br>适合设计评审</p>
-      <span class="tag tag-proto">开发评审用</span>
-    </a>
+  <!-- 前端交互展示 -->
+  <div class="section">
+    <div class="section-title">📱 前端交互展示（移动端 APP 模拟）</div>
+    <div class="cards">
+      <a href="interactive-ui.html" class="card">
+        <span class="icon">🎨</span>
+        <h3>UI 交互展示</h3>
+        <p>暗色科技风主题 · 真实视觉效果<br>渐变、发光、毛玻璃效果</p>
+        <span class="tag tag-ui">推荐演示用</span>
+      </a>
+      <a href="interactive-prototype.html" class="card">
+        <span class="icon">📐</span>
+        <h3>原型交互展示</h3>
+        <p>线框风格原型图<br>灰度配色 + 虚线边框</p>
+        <span class="tag tag-proto">设计评审用</span>
+      </a>
+    </div>
   </div>
 
-  <p class="footer">智慧养老健康监测 APP · 22 页面交互原型</p>
+  <!-- 后台管理系统 -->
+  <div class="section">
+    <div class="section-title">⚙️ 后台管理系统</div>
+    <div class="cards">
+      <a href="admin.html" class="card">
+        <span class="icon">🖥️</span>
+        <h3>后台管理面板</h3>
+        <p>仪表盘 · 老人管理 · 设备管理<br>健康数据 · 告警中心 · 系统设置</p>
+        <span class="tag tag-admin">需登录</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 测试账号 -->
+  <div class="section">
+    <div class="section-title">🔑 测试账号密码</div>
+
+    <div class="accounts-box">
+      <h4>🖥️ 后台管理系统 — 登录账号</h4>
+      <table class="account-table">
+        <thead><tr><th>角色</th><th>用户名</th><th>密码</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="role-tag role-super">超级管理员</span></td>
+            <td><code>superadmin</code></td>
+            <td><code>admin123</code></td>
+            <td>全部权限，可管理所有数据</td>
+          </tr>
+          <tr>
+            <td><span class="role-tag role-admin">管理员</span></td>
+            <td><code>admin</code></td>
+            <td><code>admin123</code></td>
+            <td>日常管理，查看和处理告警</td>
+          </tr>
+          <tr>
+            <td><span class="role-tag role-doctor">健康管理师</span></td>
+            <td><code>doctor</code></td>
+            <td><code>doctor123</code></td>
+            <td>查看健康数据，管理用药</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="accounts-box" style="margin-top:16px">
+      <h4>📱 前端交互展示 — 无需登录，直接点击进入即可体验全部 22 个页面</h4>
+      <p style="font-size:12px;color:#94A3B8;margin-top:8px">
+        前端原型和 UI 展示为纯交互演示，无需账号，直接浏览。<br>
+        模拟了老人端 APP 的完整操作流程：首页 → 健康数据 → 告警 → 用药 → 我的
+      </p>
+    </div>
+  </div>
+
+  <!-- 链接说明 -->
+  <div class="section">
+    <div class="section-title">🔗 中国大陆 CDN 加速链接（jsDelivr）</div>
+    <div class="accounts-box">
+      <table class="account-table">
+        <thead><tr><th>页面</th><th>链接</th></tr></thead>
+        <tbody>
+          <tr><td>首页（本页）</td><td><code style="word-break:break-all;font-size:11px">https://cdn.jsdelivr.net/gh/bradytang0705/elder-health-demo@main/index.html</code></td></tr>
+          <tr><td>UI 交互展示</td><td><code style="word-break:break-all;font-size:11px">https://cdn.jsdelivr.net/gh/bradytang0705/elder-health-demo@main/interactive-ui.html</code></td></tr>
+          <tr><td>原型交互展示</td><td><code style="word-break:break-all;font-size:11px">https://cdn.jsdelivr.net/gh/bradytang0705/elder-health-demo@main/interactive-prototype.html</code></td></tr>
+          <tr><td>后台管理系统</td><td><code style="word-break:break-all;font-size:11px">https://cdn.jsdelivr.net/gh/bradytang0705/elder-health-demo@main/admin.html</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="footer">
+    智慧养老健康监测平台 · <a href="https://github.com/bradytang0705/elder-health-demo" target="_blank">GitHub</a><br>
+    后端服务: <code>cd admin-server && npm start</code> → http://localhost:3000
+  </p>
 </div>
 </body>
 </html>

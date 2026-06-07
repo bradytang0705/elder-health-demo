@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智慧养老健康监测 - 后台管理系统</title>
+<style>
+:root {
+  --bg-deep: #0B1120;
+  --bg-card: #1E293B;
+  --bg-card-hover: #273548;
+  --bg-input: #0F172A;
+  --border: #334155;
+  --text: #E2E8F0;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --blue: #3B82F6;
+  --blue-glow: rgba(59,130,246,0.3);
+  --green: #10B981;
+  --green-bg: rgba(16,185,129,0.15);
+  --red: #EF4444;
+  --red-bg: rgba(239,68,68,0.15);
+  --orange: #F59E0B;
+  --orange-bg: rgba(245,158,11,0.15);
+  --purple: #8B5CF6;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-deep);
+  color: var(--text);
+  display: flex;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background: rgba(15,23,42,0.8);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+
+.sidebar-logo {
+  padding: 24px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-logo .icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--blue), #6366F1);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+
+.sidebar-logo .text h2 {
+  font-size: 15px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #E2E8F0, #94A3B8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sidebar-logo .text span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+  font-size: 14px;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.nav-item:hover {
+  background: var(--bg-card);
+  color: var(--text);
+}
+
+.nav-item.active {
+  background: rgba(59,130,246,0.15);
+  color: var(--blue);
+  box-shadow: inset 0 0 0 1px rgba(59,130,246,0.3);
+}
+
+.nav-item .badge {
+  margin-left: auto;
+  background: var(--red);
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.nav-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0;
+}
+
+/* Main */
+.main {
+  margin-left: 240px;
+  flex: 1;
+  padding: 24px;
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.header h1 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-time {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 80px; height: 80px;
+  border-radius: 0 0 0 80px;
+  opacity: 0.08;
+}
+
+.stat-card.blue::after { background: var(--blue); }
+.stat-card.green::after { background: var(--green); }
+.stat-card.orange::after { background: var(--orange); }
+.stat-card.purple::after { background: var(--purple); }
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* Card */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.card-body { padding: 20px; }
+
+/* Table */
+.table-wrap { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(51,65,85,0.4);
+  white-space: nowrap;
+}
+
+tr:hover td { background: rgba(30,41,59,0.5); }
+
+/* Tags & Badges */
+.tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tag-blue { background: rgba(59,130,246,0.15); color: #60A5FA; }
+.tag-green { background: var(--green-bg); color: #34D399; }
+.tag-red { background: var(--red-bg); color: #F87171; }
+.tag-orange { background: var(--orange-bg); color: #FBBF24; }
+.tag-purple { background: rgba(139,92,246,0.15); color: #A78BFA; }
+
+.status-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.status-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status-dot.offline { background: var(--text-muted); }
+.status-dot.warning { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: var(--blue);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: #2563EB;
+  box-shadow: 0 0 20px var(--blue-glow);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.btn-outline:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.btn-danger {
+  background: transparent;
+  border: 1px solid rgba(239,68,68,0.3);
+  color: var(--red);
+}
+.btn-danger:hover {
+  background: var(--red-bg);
+}
+
+/* Grid layouts */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* Chart placeholder */
+.chart-area {
+  height: 260px;
+  background: rgba(15,23,42,0.5);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+  gap: 12px;
+}
+
+.chart-bar {
+  flex: 1;
+  background: linear-gradient(to top, var(--blue), #6366F1);
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  min-width: 20px;
+  transition: all 0.3s;
+}
+
+.chart-bar:hover {
+  filter: brightness(1.3);
+}
+
+.chart-label {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.bar-value {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Alerts */
+.alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.alert-item:hover { border-color: var(--text-muted); }
+
+.alert-icon {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.alert-icon.emergency { background: var(--red-bg); }
+.alert-icon.warning { background: var(--orange-bg); }
+.alert-icon.info { background: rgba(59,130,246,0.15); }
+
+.alert-content { flex: 1; }
+.alert-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.alert-desc { font-size: 12px; color: var(--text-secondary); }
+.alert-time { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+.alert-status {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* Timeline */
+.timeline { position: relative; padding-left: 24px; }
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 4px; bottom: 4px;
+  width: 2px;
+  background: var(--border);
+}
+
+.timeline-item {
+  position: relative;
+  padding: 8px 0 16px 16px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 12px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 8px var(--blue-glow);
+}
+
+.timeline-title { font-size: 13px; font-weight: 500; }
+.timeline-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* Section nav */
+.section-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 4px;
+  border: 1px solid var(--border);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.tab-btn.active {
+  background: rgba(59,130,246,0.15);
+  color: var(--blue);
+}
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+/* Media queries */
+@media (max-width: 1200px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .sidebar { width: 60px; }
+  .sidebar-logo .text, .nav-item span:not(.badge) { display: none; }
+  .main { margin-left: 60px; }
+  .stats-grid { grid-template-columns: 1fr; }
+}
+
+/* Login Overlay */
+.login-overlay{position:fixed;inset:0;z-index:9999;background:var(--bg-deep);display:flex;align-items:center;justify-content:center;
+  background-image:radial-gradient(ellipse at 50% 0%,rgba(59,130,246,.08) 0%,transparent 60%);}
+.login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:40px;width:380px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.login-card h2{font-size:22px;font-weight:700;text-align:center;margin-bottom:4px;}
+.login-card .subtitle{text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:28px;}
+.login-card .input-group{margin-bottom:18px;}
+.login-card .input-group label{display:block;font-size:13px;color:var(--text-secondary);margin-bottom:6px;font-weight:500;}
+.login-card .input-group input{width:100%;padding:12px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s;}
+.login-card .input-group input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+.login-card .btn-login{width:100%;padding:12px;background:linear-gradient(135deg,var(--blue),#6366F1);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;}
+.login-card .btn-login:hover{box-shadow:0 0 20px var(--blue-glow);}
+.login-card .error-msg{color:var(--red);font-size:12px;text-align:center;margin-top:12px;min-height:18px;}
+.login-card .hint{text-align:center;color:var(--text-muted);font-size:11px;margin-top:20px;line-height:1.8;}
+.login-card .hint b{color:var(--text-secondary);}
+.hidden{display:none!important;}
+
+</style>
+</head>
+<body>
+
+<!-- Login Overlay -->
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-card">
+    <h2>🏥 智慧养老</h2>
+    <div class="subtitle">后台管理系统 · 请登录</div>
+    <div class="input-group"><label>用户名</label><input type="text" id="loginUser" placeholder="请输入用户名"></div>
+    <div class="input-group"><label>密码</label><input type="password" id="loginPass" placeholder="请输入密码"></div>
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">登 录</button>
+    <div class="error-msg" id="loginError"></div>
+    <div class="hint">
+      演示账号<br>
+      超级管理员: <b>admin</b> / <b>admin123</b><br>
+      医生: <b>doctor</b> / <b>doctor123</b>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="icon">🏥</div>
+    <div class="text"><h2>智慧养老</h2><span>健康监测平台</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" data-page="dashboard">
+      <span>📊</span> <span>仪表盘</span>
+    </button>
+    <button class="nav-item" data-page="users">
+      <span>👥</span> <span>老人管理</span>
+      <span class="badge">8</span>
+    </button>
+    <button class="nav-item" data-page="devices">
+      <span>📡</span> <span>设备管理</span>
+    </button>
+    <button class="nav-item" data-page="health">
+      <span>💓</span> <span>健康数据</span>
+    </button>
+    <div class="nav-divider"></div>
+    <button class="nav-item" data-page="alerts">
+      <span>🔔</span> <span>告警中心</span>
+      <span class="badge" id="alertBadge">5</span>
+    </button>
+    <button class="nav-item" data-page="settings">
+      <span>⚙️</span> <span>系统设置</span>
+    </button>
+  </nav>
+  <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;margin-top:auto">
+    <div style="width:32px;height:32px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid rgba(59,130,246,.3)">👤</div>
+    <div style="flex:1"><div style="font-size:13px;font-weight:600" id="sidebarUserDisplay">未登录</div><div style="font-size:11px;color:var(--text-muted)" id="sidebarRoleDisplay">请先登录</div></div>
+    <button style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;padding:4px" onclick="doLogout()" title="退出登录">🚪</button>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main" id="mainContent"></main>
+
+<script>
+// ==================== Auth (client-side demo) ====================
+const DEMO_USERS = [
+  { username:'superadmin', password:'admin123', role:'超级管理员' },
+  { username:'admin', password:'admin123', role:'管理员' },
+  { username:'doctor', password:'doctor123', role:'健康管理师' },
+];
+
+function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value.trim();
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  if (!username || !password) { errEl.textContent = '请输入用户名和密码'; return; }
+  btn.disabled = true; btn.textContent = '登录中...'; errEl.textContent = '';
+  setTimeout(() => {
+    const user = DEMO_USERS.find(u => u.username === username && u.password === password);
+    if (!user) { errEl.textContent = '用户名或密码错误'; btn.disabled = false; btn.textContent = '登 录'; return; }
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.getElementById('sidebarUserDisplay').textContent = username;
+    document.getElementById('sidebarRoleDisplay').textContent = user.role;
+  }, 500);
+}
+
+function doLogout() {
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  main.innerHTML = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('loginOverlay').classList.contains('hidden')) {
+    doLogin();
+  }
+});
+
+// ==================== Mock Data ====================
+const elderly = [
+  { id:1, name:'张建国', gender:'男', age:78, phone:'138****1234', health_tags:'高血压', notes:'需每日监测血压，按时服用降压药', avatar:'👴', status:'active' },
+  { id:2, name:'李秀英', gender:'女', age:72, phone:'139****2345', health_tags:'糖尿病', notes:'需控制饮食，每日监测血糖', avatar:'👵', status:'active' },
+  { id:3, name:'王德明', gender:'男', age:81, phone:'137****3456', health_tags:'高血压,糖尿病', notes:'多种慢性病，需综合管理', avatar:'👴', status:'active' },
+  { id:4, name:'赵桂兰', gender:'女', age:69, phone:'136****4567', health_tags:'心脏病', notes:'注意心率变化，避免剧烈运动', avatar:'👵', status:'active' },
+  { id:5, name:'刘文华', gender:'男', age:75, phone:'135****5678', health_tags:'高血压', notes:'血压时有波动，需定期监测', avatar:'👴', status:'active' },
+  { id:6, name:'陈淑珍', gender:'女', age:83, phone:'134****6789', health_tags:'高血压,心脏病', notes:'高龄，需重点关注', avatar:'👵', status:'active' },
+  { id:7, name:'周明德', gender:'男', age:70, phone:'133****7890', health_tags:'糖尿病', notes:'新诊断，需建立监测习惯', avatar:'👴', status:'active' },
+  { id:8, name:'吴桂英', gender:'女', age:76, phone:'132****8901', health_tags:'', notes:'身体状况良好，常规监测', avatar:'👵', status:'active' },
+];
+
+const devices = [
+  { id:1, name:'欧姆龙血压计', device_sn:'BP-2024001', type:'血压计', brand:'欧姆龙', model:'HEM-7124', elderly_id:1, elderly_name:'张建国', battery:85, status:'online' },
+  { id:2, name:'小米手环8', device_sn:'HR-2024015', type:'心率手环', brand:'小米', model:'MiBand-8', elderly_id:1, elderly_name:'张建国', battery:72, status:'online' },
+  { id:3, name:'三诺血糖仪', device_sn:'BG-2024032', type:'血糖仪', brand:'三诺', model:'GA-3', elderly_id:2, elderly_name:'李秀英', battery:60, status:'online' },
+  { id:4, name:'睡眠监测带', device_sn:'SL-2024008', type:'睡眠监测', brand:'华为', model:'SM-200', elderly_id:3, elderly_name:'王德明', battery:45, status:'online' },
+  { id:5, name:'鱼跃血压计', device_sn:'BP-2024056', type:'血压计', brand:'鱼跃', model:'YE-680B', elderly_id:5, elderly_name:'刘文华', battery:10, status:'offline' },
+  { id:6, name:'华为手环', device_sn:'HR-2024020', type:'心率手环', brand:'华为', model:'Band-8', elderly_id:4, elderly_name:'赵桂兰', battery:90, status:'online' },
+  { id:7, name:'欧姆龙血压计', device_sn:'BP-2024018', type:'血压计', brand:'欧姆龙', model:'HEM-7124', elderly_id:2, elderly_name:'李秀英', battery:78, status:'online' },
+  { id:8, name:'鱼跃血糖仪', device_sn:'BG-2024040', type:'血糖仪', brand:'鱼跃', model:'GA-3', elderly_id:3, elderly_name:'王德明', battery:55, status:'online' },
+  { id:9, name:'小米手环7', device_sn:'HR-2024025', type:'心率手环', brand:'小米', model:'MiBand-7', elderly_id:6, elderly_name:'陈淑珍', battery:40, status:'online' },
+  { id:10, name:'欧姆龙血压计', device_sn:'BP-2024033', type:'血压计', brand:'欧姆龙', model:'HEM-7124', elderly_id:4, elderly_name:'赵桂兰', battery:92, status:'online' },
+];
+
+const alerts = [
+  { id:1, elderly_id:1, elderly_name:'张建国', type:'血压异常升高', level:'emergency', title:'血压异常升高', content:'收缩压160mmHg，舒张压95mmHg，已超出正常范围', status:'unread', created_at:'2026-06-07 08:30:00' },
+  { id:2, elderly_id:3, elderly_name:'王德明', type:'跌倒检测', level:'emergency', title:'疑似跌倒事件', content:'检测到疑似跌倒事件，请立即确认', status:'unread', created_at:'2026-06-07 07:15:00' },
+  { id:3, elderly_id:4, elderly_name:'赵桂兰', type:'心率异常', level:'emergency', title:'心率持续偏高', content:'心率持续超过120次/分，持续5分钟以上', status:'processing', created_at:'2026-06-07 06:50:00' },
+  { id:4, elderly_id:2, elderly_name:'李秀英', type:'血糖偏高', level:'warning', title:'餐后血糖偏高', content:'餐后血糖7.8mmol/L，超过正常范围', status:'unread', created_at:'2026-06-07 12:30:00' },
+  { id:5, elderly_id:5, elderly_name:'刘文华', type:'设备离线', level:'warning', title:'血压计离线超24h', content:'血压计 BP-2024056 离线超过24小时', status:'resolved', created_at:'2026-06-06 20:00:00' },
+  { id:6, elderly_id:1, elderly_name:'张建国', type:'血压偏高', level:'warning', title:'血压偏高', content:'收缩压145mmHg，舒张压90mmHg', status:'resolved', created_at:'2026-06-06 08:15:00' },
+  { id:7, elderly_id:6, elderly_name:'陈淑珍', type:'心率偏低', level:'warning', title:'心率偏低', content:'心率55次/分，低于正常范围', status:'unread', created_at:'2026-06-07 04:00:00' },
+];
+
+const bpRecords = Array.from({length:30}, (_,i) => ({
+  id: i+1,
+  elderly_name: elderly[Math.floor(Math.random()*8)].name,
+  systolic: 110 + Math.floor(Math.random()*50),
+  diastolic: 65 + Math.floor(Math.random()*30),
+  heart_rate: 60 + Math.floor(Math.random()*40),
+  result: ['normal','normal','normal','high','high','danger'][Math.floor(Math.random()*6)],
+  recorded_at: new Date(Date.now() - (29-i)*86400000).toISOString().slice(0,16).replace('T',' ')
+}));
+
+const sugarRecords = Array.from({length:20}, (_,i) => ({
+  id: i+1,
+  elderly_name: elderly[Math.floor(Math.random()*8)].name,
+  value: (3.5 + Math.random()*5).toFixed(1),
+  period: ['fasting','after_meal','random'][Math.floor(Math.random()*3)],
+  result: ['normal','normal','high','low'][Math.floor(Math.random()*4)],
+  recorded_at: new Date(Date.now() - (19-i)*86400000).toISOString().slice(0,16).replace('T',' ')
+}));
+
+const hrRecords = Array.from({length:25}, (_,i) => ({
+  id: i+1,
+  elderly_name: elderly[Math.floor(Math.random()*8)].name,
+  bpm: 58 + Math.floor(Math.random()*50),
+  result: ['normal','normal','high','low'][Math.floor(Math.random()*4)],
+  recorded_at: new Date(Date.now() - (24-i)*86400000).toISOString().slice(0,16).replace('T',' ')
+}));
+
+const activities = [
+  { action:'血压异常告警', detail:'张建国 血压160/95mmHg', created_at:'2026-06-07 08:30:00' },
+  { action:'设备上线', detail:'欧姆龙血压计 BP-2024001', created_at:'2026-06-07 08:15:00' },
+  { action:'健康报告生成', detail:'李秀英 周报生成完毕', created_at:'2026-06-07 07:00:00' },
+  { action:'用药提醒已读', detail:'张建国 已确认服用降压药', created_at:'2026-06-07 06:00:00' },
+  { action:'新设备绑定', detail:'三诺血糖仪 绑定到李秀英', created_at:'2026-06-07 05:00:00' },
+  { action:'跌倒告警', detail:'王德明 疑似跌倒', created_at:'2026-06-07 07:15:00' },
+  { action:'设备离线', detail:'鱼跃血压计 BP-2024056 离线超24h', created_at:'2026-06-06 20:00:00' },
+];
+
+// ==================== Render ====================
+const main = document.getElementById('mainContent');
+let currentPage = 'dashboard';
+
+function h(tag, attrs, ...children) {
+  const el = document.createElement(tag);
+  if (attrs) {
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'className') el.className = v;
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v);
+      else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+      else if (k === 'innerHTML') el.innerHTML = v;
+      else el.setAttribute(k, v);
+    }
+  }
+  for (const c of children.flat()) {
+    if (c == null) continue;
+    el.appendChild(typeof c === 'string' || typeof c === 'number' ? document.createTextNode(c) : c);
+  }
+  return el;
+}
+
+function renderPage(page) {
+  currentPage = page;
+  main.innerHTML = '';
+  switch(page) {
+    case 'dashboard': renderDashboard(); break;
+    case 'users': renderUsers(); break;
+    case 'devices': renderDevices(); break;
+    case 'health': renderHealth(); break;
+    case 'alerts': renderAlerts(); break;
+    case 'settings': renderSettings(); break;
+  }
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+}
+
+// ==================== Dashboard ====================
+function renderDashboard() {
+  const unreadAlerts = alerts.filter(a => a.status !== 'resolved').length;
+  const onlineDevs = devices.filter(d => d.status === 'online').length;
+  const abnormalBP = bpRecords.filter(b => b.result !== 'normal').length;
+
+  main.appendChild(
+    h('div', {}, [
+      h('div', {className:'header'}, [
+        h('h1', {}, '仪表盘'),
+        h('div', {className:'header-right'}, [
+          h('span', {className:'header-time'}, new Date().toLocaleString('zh-CN'))
+        ])
+      ]),
+      h('div', {className:'stats-grid'}, [
+        h('div', {className:'stat-card blue'}, [
+          h('div', {className:'stat-label'}, '在管老人'),
+          h('div', {className:'stat-value'}, '8'),
+          h('div', {className:'stat-sub'}, '全部活跃')
+        ]),
+        h('div', {className:'stat-card green'}, [
+          h('div', {className:'stat-label'}, '在线设备'),
+          h('div', {className:'stat-value'}, String(onlineDevs) + '/10'),
+          h('div', {className:'stat-sub'}, '在线率 ' + (onlineDevs*10) + '%')
+        ]),
+        h('div', {className:'stat-card orange'}, [
+          h('div', {className:'stat-label'}, '待处理告警'),
+          h('div', {className:'stat-value'}, String(unreadAlerts)),
+          h('div', {className:'stat-sub'}, '需立即处理')
+        ]),
+        h('div', {className:'stat-card purple'}, [
+          h('div', {className:'stat-label'}, '今日采集'),
+          h('div', {className:'stat-value'}, '47'),
+          h('div', {className:'stat-sub'}, '血压12 血糖8 心率15 睡眠12')
+        ])
+      ]),
+      // Chart + Recent alerts
+      h('div', {className:'grid-2', style:{marginBottom:'20px'}}, [
+        h('div', {className:'card'}, [
+          h('div', {className:'card-header'}, [
+            h('h3', {}, '近7日异常趋势'),
+            h('span', {style:{fontSize:'12px',color:'var(--text-muted)'}}, '血压 / 血糖 / 心率')
+          ]),
+          h('div', {className:'card-body'}, [
+            h('div', {className:'chart-area'},
+              [45,38,52,30,42,48,35].map((v,i) =>
+                h('div', {style:{height:(v*2.5)+'px'}}, [
+                  h('span', {className:'bar-value'}, v)
+                ])
+              )
+            ),
+            h('div', {style:{display:'flex',gap:'12px',marginTop:'8px'}},
+              ['6/1','6/2','6/3','6/4','6/5','6/6','6/7'].map(d =>
+                h('span', {className:'chart-label',style:{flex:1}}, d)
+              )
+            )
+          ])
+        ]),
+        h('div', {className:'card'}, [
+          h('div', {className:'card-header'}, h('h3', {}, '最近活动')),
+          h('div', {className:'card-body'},
+            h('div', {className:'timeline'},
+              activities.slice(0,5).map(a =>
+                h('div', {className:'timeline-item'}, [
+                  h('div', {className:'timeline-title'}, a.action + ' — ' + a.detail),
+                  h('div', {className:'timeline-time'}, a.created_at)
+                ])
+              )
+            )
+          )
+        ])
+      ]),
+      // Latest alerts
+      h('div', {className:'card'}, [
+        h('div', {className:'card-header'}, [
+          h('h3', {}, '最新告警'),
+          h('button', {className:'btn btn-outline btn-sm', onClick: ()=>renderPage('alerts')}, '查看全部 →')
+        ]),
+        h('div', {className:'card-body'},
+          h('div', {className:'table-wrap'},
+            h('table', {}, [
+              h('thead', {}, h('tr', {}, [
+                h('th',{},'级别'), h('th',{},'老人'), h('th',{},'类型'), h('th',{},'状态'), h('th',{},'时间')
+              ])),
+              h('tbody', {}, alerts.slice(0,5).map(a =>
+                h('tr', {}, [
+                  h('td', {}, h('span', {className:'tag tag-'+(a.level==='emergency'?'red':'orange')}, a.level==='emergency'?'紧急':'警告')),
+                  h('td', {}, a.elderly_name),
+                  h('td', {}, a.title),
+                  h('td', {}, h('span', {className:'tag tag-'+(a.status==='unread'?'red':a.status==='processing'?'blue':'green')}, a.status==='unread'?'未读':a.status==='processing'?'处理中':'已解决')),
+                  h('td', {style:{color:'var(--text-muted)',fontSize:'12px'}}, a.created_at)
+                ])
+              ))
+            ])
+          )
+        )
+      ])
+    ])
+  );
+}
+
+// ==================== Users ====================
+function renderUsers() {
+  main.appendChild(
+    h('div', {}, [
+      h('div', {className:'header'}, [
+        h('h1', {}, '老人管理'),
+        h('button', {className:'btn btn-primary', onClick: ()=>showToast('演示模式，不支持编辑')}, '+ 添加老人')
+      ]),
+      h('div', {className:'card'}, [
+        h('div', {className:'table-wrap'},
+          h('table', {}, [
+            h('thead', {}, h('tr', {}, [
+              h('th',{},'头像'), h('th',{},'姓名'), h('th',{},'性别'), h('th',{},'年龄'), h('th',{},'健康标签'), h('th',{},'状态'), h('th',{},'操作')
+            ])),
+            h('tbody', {}, elderly.map(e =>
+              h('tr', {}, [
+                h('td', {style:{fontSize:'24px'}}, e.avatar),
+                h('td', {style:{fontWeight:'500'}}, e.name),
+                h('td', {}, e.gender),
+                h('td', {}, String(e.age)+'岁'),
+                h('td', {}, e.health_tags ? h('span', {className:'tag tag-blue'}, e.health_tags) : h('span', {style:{color:'var(--text-muted)'}}, '—')),
+                h('td', {}, h('span', {className:'tag tag-green'}, '活跃')),
+                h('td', {}, [
+                  h('button', {className:'btn btn-outline btn-sm', style:{marginRight:'6px'}}, '详情'),
+                  h('button', {className:'btn btn-danger btn-sm'}, '删除')
+                ])
+              ])
+            ))
+          ])
+        )
+      ])
+    ])
+  );
+}
+
+// ==================== Devices ====================
+function renderDevices() {
+  main.appendChild(
+    h('div', {}, [
+      h('div', {className:'header'}, [
+        h('h1', {}, '设备管理'),
+        h('div', {style:{display:'flex',gap:'8px'}}, [
+          h('span', {className:'tag tag-green'}, '在线: '+devices.filter(d=>d.status==='online').length),
+          h('span', {className:'tag tag-red'}, '离线: '+devices.filter(d=>d.status==='offline').length)
+        ])
+      ]),
+      h('div', {className:'card'}, [
+        h('div', {className:'table-wrap'},
+          h('table', {}, [
+            h('thead', {}, h('tr', {}, [
+              h('th',{},'设备名称'), h('th',{},'SN'), h('th',{},'类型'), h('th',{},'品牌/型号'), h('th',{},'绑定老人'), h('th',{},'电量'), h('th',{},'状态')
+            ])),
+            h('tbody', {}, devices.map(d =>
+              h('tr', {}, [
+                h('td', {style:{fontWeight:'500'}}, d.name),
+                h('td', {style:{fontSize:'12px',fontFamily:'monospace'}}, d.device_sn),
+                h('td', {}, h('span', {className:'tag tag-purple'}, d.type)),
+                h('td', {}, d.brand + ' / ' + d.model),
+                h('td', {}, d.elderly_name),
+                h('td', {}, [
+                  h('span', {style:{
+                    display:'inline-block',width:'40px',height:'6px',borderRadius:'3px',
+                    background:d.battery>60?'var(--green)':d.battery>20?'var(--orange)':'var(--red)',
+                    verticalAlign:'middle',marginRight:'8px'
+                  }}),
+                  d.battery + '%'
+                ]),
+                h('td', {}, h('span', {}, [
+                  h('span', {className:'status-dot '+(d.status==='online'?'online':'offline')}),
+                  d.status==='online'?'在线':'离线'
+                ]))
+              ])
+            ))
+          ])
+        )
+      ])
+    ])
+  );
+}
+
+// ==================== Health ====================
+let healthTab = 'bp';
+function renderHealth() {
+  const renderTable = () => {
+    let data, columns;
+    if (healthTab === 'bp') {
+      data = bpRecords;
+      columns = ['老人','收缩压','舒张压','心率','结果','时间'];
+    } else if (healthTab === 'sugar') {
+      data = sugarRecords;
+      columns = ['老人','血糖值','时段','结果','时间'];
+    } else {
+      data = hrRecords;
+      columns = ['老人','心率','结果','时间'];
+    }
+
+    const tbody = document.getElementById('healthTbody');
+    tbody.innerHTML = '';
+
+    if (healthTab === 'bp') {
+      data.forEach(r => {
+        tbody.appendChild(h('tr', {}, [
+          h('td',{},r.elderly_name),
+          h('td',{},r.systolic+' mmHg'),
+          h('td',{},r.diastolic+' mmHg'),
+          h('td',{},r.heart_rate+' bpm'),
+          h('td',{},h('span',{className:'tag tag-'+(({normal:'green',high:'orange',danger:'red',low:'blue'})[r.result])},({normal:'正常',high:'偏高',danger:'危险',low:'偏低'})[r.result])),
+          h('td',{style:{color:'var(--text-muted)',fontSize:'12px'}},r.recorded_at)
+        ]));
+      });
+    } else if (healthTab === 'sugar') {
+      data.forEach(r => {
+        tbody.appendChild(h('tr', {}, [
+          h('td',{},r.elderly_name),
+          h('td',{},r.value+' mmol/L'),
+          h('td',{},h('span',{className:'tag tag-purple'},({fasting:'空腹',after_meal:'餐后',random:'随机'})[r.period])),
+          h('td',{},h('span',{className:'tag tag-'+(({normal:'green',high:'orange',low:'blue'})[r.result])},({normal:'正常',high:'偏高',low:'偏低'})[r.result])),
+          h('td',{style:{color:'var(--text-muted)',fontSize:'12px'}},r.recorded_at)
+        ]));
+      });
+    } else {
+      data.forEach(r => {
+        tbody.appendChild(h('tr', {}, [
+          h('td',{},r.elderly_name),
+          h('td',{},r.bpm+' bpm'),
+          h('td',{},h('span',{className:'tag tag-'+(({normal:'green',high:'orange',low:'blue'})[r.result])},({normal:'正常',high:'偏高',low:'偏低'})[r.result])),
+          h('td',{style:{color:'var(--text-muted)',fontSize:'12px'}},r.recorded_at)
+        ]));
+      });
+    }
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-health="${healthTab}"]`).classList.add('active');
+  };
+
+  main.appendChild(
+    h('div', {}, [
+      h('div', {className:'header'}, h('h1', {}, '健康数据')),
+      h('div', {className:'section-tabs'}, [
+        h('button', {className:'tab-btn active', 'data-health':'bp', onClick: ()=>{healthTab='bp';renderTable();}}, '🩺 血压记录'),
+        h('button', {className:'tab-btn', 'data-health':'sugar', onClick: ()=>{healthTab='sugar';renderTable();}}, '🩸 血糖记录'),
+        h('button', {className:'tab-btn', 'data-health':'hr', onClick: ()=>{healthTab='hr';renderTable();}}, '💗 心率记录')
+      ]),
+      h('div', {className:'card'}, [
+        h('div', {className:'table-wrap'},
+          h('table', {}, [
+            h('thead', {id:'healthThead'}),
+            h('tbody', {id:'healthTbody'})
+          ])
+        )
+      ])
+    ])
+  );
+
+  // Set header
+  const thead = document.getElementById('healthThead');
+  const cols = healthTab==='bp' ? ['老人','收缩压','舒张压','心率','结果','时间']
+    : healthTab==='sugar' ? ['老人','血糖值','时段','结果','时间']
+    : ['老人','心率','结果','时间'];
+  thead.appendChild(h('tr', {}, cols.map(c => h('th',{},c))));
+  renderTable();
+}
+
+// ==================== Alerts ====================
+function renderAlerts() {
+  main.appendChild(
+    h('div', {}, [
+      h('div', {className:'header'}, [
+        h('h1', {}, '告警中心'),
+        h('div', {style:{display:'flex',gap:'8px'}}, [
+          h('span', {className:'tag tag-red'}, '未读: '+alerts.filter(a=>a.status==='unread').length),
+          h('span', {className:'tag tag-blue'}, '处理中: '+alerts.filter(a=>a.status==='processing').length),
+          h('span', {className:'tag tag-green'}, '已解决: '+alerts.filter(a=>a.status==='resolved').length)
+        ])
+      ]),
+      h('div', {className:'card'}, [
+        h('div', {className:'card-body'},
+          alerts.map(a =>
+            h('div', {className:'alert-item', onClick: ()=>showToast('已标记为处理中: ' + a.title)}, [
+              h('div', {className:'alert-icon '+(a.level==='emergency'?'emergency':'warning')}, a.level==='emergency'?'🚨':'⚠️'),
+              h('div', {className:'alert-content'}, [
+                h('div', {className:'alert-title'}, '['+(a.level==='emergency'?'紧急':'警告')+'] ' + a.title),
+                h('div', {className:'alert-desc'}, a.content),
+                h('div', {className:'alert-time'}, a.elderly_name + ' · ' + a.created_at)
+              ]),
+              h('span', {className:'alert-status tag tag-'+(a.status==='unread'?'red':a.status==='processing'?'blue':'green')},
+                a.status==='unread'?'未读':a.status==='processing'?'处理中':'已解决')
+            ])
+          )
+        )
+      ])
+    ])
+  );
+}
+
+// ==================== Settings ====================
+function renderSettings() {
+  const settings = [
+    {key:'系统名称', value:'智慧养老健康监测平台'},
+    {key:'版本', value:'v1.0.0'},
+    {key:'管理员邮箱', value:'admin@elder-health.com'},
+    {key:'联系电话', value:'400-888-0000'},
+    {key:'血压收缩压上限', value:'140 mmHg'},
+    {key:'血压舒张压上限', value:'90 mmHg'},
+    {key:'心率上限', value:'100 bpm'},
+    {key:'心率下限', value:'60 bpm'},
+    {key:'空腹血糖上限', value:'6.1 mmol/L'},
+    {key:'餐后血糖上限', value:'7.8 mmol/L'},
+    {key:'自动生成周报', value:'✅ 已开启'},
+    {key:'紧急告警推送', value:'✅ 已开启'},
+    {key:'用药提醒推送', value:'✅ 已开启'},
+    {key:'AI 智能分析', value:'⏳ 开发中'},
+  ];
+
+  main.appendChild(
+    h('div', {}, [
+      h('div', {className:'header'}, h('h1', {}, '系统设置')),
+      h('div', {className:'card'}, [
+        h('div', {className:'table-wrap'},
+          h('table', {}, [
+            h('thead', {}, h('tr', {}, [h('th',{},'配置项'), h('th',{},'当前值')])),
+            h('tbody', {}, settings.map(s =>
+              h('tr', {}, [
+                h('td', {style:{fontWeight:'500'}}, s.key),
+                h('td', {}, s.value)
+              ])
+            ))
+          ])
+        )
+      ]),
+      h('p', {style:{color:'var(--text-muted)',fontSize:'12px',marginTop:'16px',textAlign:'center'}},
+        '💡 演示模式 — 数据为静态展示，实际部署后连接 API 支持动态修改'
+      )
+    ])
+  );
+}
+
+// ==================== Toast ====================
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const toast = h('div', {
+    className:'toast',
+    style: {
+      position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
+      background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)',
+      padding:'12px 24px', fontSize:'14px', color:'var(--text)', zIndex:'9999',
+      boxShadow:'0 8px 32px rgba(0,0,0,0.5)', animation:'slideUp 0.3s ease'
+    }
+  }, msg);
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
+}
+
+// ==================== Init ====================
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => renderPage(btn.dataset.page));
+});
+
+// Update time
+setInterval(() => {
+  const timeEl = document.querySelector('.header-time');
+  if (timeEl) timeEl.textContent = new Date().toLocaleString('zh-CN');
+}, 30000);
+
+// Initial render
+renderPage('dashboard');
+</script>
+
+<style>
+@keyframes slideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+</style>
+
+</body>
+</html>

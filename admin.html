@@ -1033,8 +1033,10 @@ function renderAlerts() {
 }
 
 // ==================== Settings ====================
+let settingsTab = 'basic';
+
 function renderSettings() {
-  const settings = [
+  const basicSettings = [
     {key:'系统名称', value:'智慧养老健康监测平台'},
     {key:'版本', value:'v1.0.0'},
     {key:'管理员邮箱', value:'admin@elder-health.com'},
@@ -1051,27 +1053,113 @@ function renderSettings() {
     {key:'AI 智能分析', value:'⏳ 开发中'},
   ];
 
+  const thirdPartyGroups = [
+    {
+      title:'📱 短信服务',
+      desc:'健康告警、用药提醒、紧急通知短信推送',
+      items:[
+        {key:'服务商', value:'阿里云短信'},
+        {key:'AccessKey ID', value:'LTAI5t****（待配置）'},
+        {key:'短信签名', value:'智慧养老'},
+        {key:'告警模板ID', value:'SMS_001'},
+        {key:'用药提醒模板ID', value:'SMS_002'},
+        {key:'紧急告警模板ID', value:'SMS_003'},
+        {key:'启用状态', value:'⚪ 待开通'},
+      ]
+    },
+    {
+      title:'📦 对象存储',
+      desc:'头像、健康报告、医疗档案文件存储',
+      items:[
+        {key:'服务商', value:'阿里云 OSS'},
+        {key:'Bucket 名称', value:'elder-health'},
+        {key:'存储区域', value:'oss-cn-hangzhou'},
+        {key:'自定义域名', value:'（未配置）'},
+        {key:'启用状态', value:'⚪ 待开通'},
+      ]
+    },
+    {
+      title:'💰 支付服务',
+      desc:'设备购买、VIP 服务订阅支付',
+      items:[
+        {key:'服务商', value:'微信支付'},
+        {key:'商户号 MCHID', value:'（待配置）'},
+        {key:'应用 APPID', value:'（待配置）'},
+        {key:'启用状态', value:'⚪ 待开通'},
+      ]
+    },
+    {
+      title:'🔔 推送服务',
+      desc:'APP 端消息推送通知',
+      items:[
+        {key:'服务商', value:'个推 Getui'},
+        {key:'AppID', value:'（待配置）'},
+        {key:'AppKey', value:'（待配置）'},
+        {key:'启用状态', value:'⚪ 待开通'},
+      ]
+    },
+    {
+      title:'🤖 AI 健康分析',
+      desc:'智能健康报告生成与异常分析',
+      items:[
+        {key:'服务商', value:'本地规则引擎'},
+        {key:'API Key', value:'（待配置）'},
+        {key:'使用模型', value:'qwen-turbo'},
+        {key:'自动生成报告', value:'⏳ 开发中'},
+      ]
+    },
+  ];
+
+  function renderTab() {
+    const container = document.getElementById('settingsContainer');
+    container.innerHTML = '';
+
+    if (settingsTab === 'basic') {
+      container.appendChild(
+        h('table', {}, [
+          h('thead', {}, h('tr', {}, [h('th',{},'配置项'), h('th',{},'当前值')])),
+          h('tbody', {}, basicSettings.map(s =>
+            h('tr', {}, [h('td',{style:{fontWeight:'500'}},s.key), h('td',{},s.value)])
+          ))
+        ])
+      );
+    } else {
+      thirdPartyGroups.forEach(group => {
+        container.appendChild(
+          h('div', {style:{marginBottom:'20px'}}, [
+            h('div', {style:{fontSize:'14px',fontWeight:'600',marginBottom:'4px',color:'var(--blue)'}}, group.title),
+            h('div', {style:{fontSize:'11px',color:'var(--text-muted)',marginBottom:'10px'}}, group.desc),
+            h('table', {}, [
+              h('tbody', {}, group.items.map(item =>
+                h('tr', {}, [h('td',{style:{fontWeight:'500',width:'180px'}},item.key), h('td',{style:{color:item.value.includes('待')?'var(--orange)':'var(--text-secondary)'}},item.value)])
+              ))
+            ])
+          ])
+        );
+      });
+    }
+
+    document.querySelectorAll('#settingsTabs .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`#settingsTabs [data-stab="${settingsTab}"]`).classList.add('active');
+  }
+
   main.appendChild(
     h('div', {}, [
       h('div', {className:'header'}, h('h1', {}, '系统设置')),
+      h('div', {className:'section-tabs', id:'settingsTabs'}, [
+        h('button', {className:'tab-btn active', 'data-stab':'basic', onClick:()=>{settingsTab='basic';renderTab();}}, '⚙️ 基础设置'),
+        h('button', {className:'tab-btn', 'data-stab':'third', onClick:()=>{settingsTab='third';renderTab();}}, '🔌 第三方服务'),
+      ]),
       h('div', {className:'card'}, [
-        h('div', {className:'table-wrap'},
-          h('table', {}, [
-            h('thead', {}, h('tr', {}, [h('th',{},'配置项'), h('th',{},'当前值')])),
-            h('tbody', {}, settings.map(s =>
-              h('tr', {}, [
-                h('td', {style:{fontWeight:'500'}}, s.key),
-                h('td', {}, s.value)
-              ])
-            ))
-          ])
-        )
+        h('div', {className:'card-body', id:'settingsContainer'})
       ]),
       h('p', {style:{color:'var(--text-muted)',fontSize:'12px',marginTop:'16px',textAlign:'center'}},
         '💡 演示模式 — 数据为静态展示，实际部署后连接 API 支持动态修改'
       )
     ])
   );
+
+  renderTab();
 }
 
 // ==================== Toast ====================

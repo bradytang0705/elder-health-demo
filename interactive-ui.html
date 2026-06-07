@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智慧养老健康监测 — UI 交互展示</title>
+<style>
+/* ========== 全局 ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg-deep: #0B1120; --bg-card: #1E293B; --bg-card2: rgba(30,41,59,0.7);
+  --text: #F1F5F9; --text2: #94A3B8; --text3: #64748B;
+  --border: #334155; --divider: rgba(51,65,85,0.5);
+  --blue: #3B82F6; --cyan: #06B6D4; --danger: #EF4444; --safe: #22C55E; --warn: #F59E0B;
+  --glow: 0 0 20px rgba(59,130,246,.25);
+  --glow-danger: 0 0 20px rgba(239,68,68,.25);
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-deep);
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(59,130,246,.08) 0%, transparent 60%),
+    radial-gradient(circle at 20% 80%, rgba(6,182,212,.04) 0%, transparent 40%);
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 20px;
+}
+.wrapper { display: flex; gap: 24px; align-items: flex-start; }
+
+/* ========== 手机框 ========== */
+.phone-frame {
+  width: 375px; height: 812px; background: var(--bg-deep);
+  border-radius: 36px; box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 6px #1E293B, 0 0 40px rgba(59,130,246,.1);
+  overflow: hidden; position: relative; flex-shrink: 0;
+}
+.page { position: absolute; inset: 0; overflow-y: auto; display: none; flex-direction: column;
+  background: var(--bg-deep); transition: opacity .25s, transform .25s; }
+.page.active { display: flex; }
+.page.slide-in { animation: slideIn .3s ease-out; }
+.page.slide-back { animation: slideBack .3s ease-out; }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0.3; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideBack { from { transform: translateX(-40%); opacity: 0.3; } to { transform: translateX(0); opacity: 1; } }
+
+/* ========== 状态栏 & 导航栏 ========== */
+.status-bar { height: 24px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; font-size: 10px; color: var(--text3); flex-shrink: 0; background: rgba(15,23,42,.8); }
+.nav { display: flex; align-items: center; padding: 10px 16px; background: rgba(15,23,42,.95);
+  border-bottom: 1px solid var(--border); min-height: 44px; flex-shrink: 0;
+  backdrop-filter: blur(10px); }
+.nav-back { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--blue); cursor: pointer; border-radius: 8px;
+  border: 1px solid rgba(59,130,246,.3); transition: all .2s; }
+.nav-back:hover { background: rgba(59,130,246,.15); border-color: var(--blue); }
+.nav-title { flex: 1; text-align: center; font-size: 17px; font-weight: 600; color: var(--text); }
+.nav-action { font-size: 13px; color: var(--blue); cursor: pointer; padding: 4px 12px;
+  border: 1px solid rgba(59,130,246,.4); border-radius: 6px; transition: all .2s; }
+.nav-action:hover { background: rgba(59,130,246,.15); }
+.nav-spacer { width: 32px; }
+
+/* ========== 底部标签栏 ========== */
+.tab-bar { display: flex; border-top: 1px solid var(--border); background: rgba(15,23,42,.95);
+  flex-shrink: 0; backdrop-filter: blur(10px); }
+.tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 6px 0 4px;
+  cursor: pointer; color: var(--text3); font-size: 10px; gap: 2px; transition: all .2s;
+  border: none; background: none; }
+.tab-item.active { color: var(--blue); }
+.tab-icon { font-size: 20px; }
+
+/* ========== 内容区 ========== */
+.content { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+  transition: all .2s; }
+.card-tap { cursor: pointer; }
+.card-tap:hover { border-color: var(--blue); box-shadow: var(--glow); transform: translateY(-1px); }
+.card-tap:active { transform: scale(.98); }
+
+/* ========== 图表/数据区 ========== */
+.chart-bar { display: flex; align-items: flex-end; gap: 6px; height: 100px; padding: 0 2px; }
+.chart-bar .bar { flex: 1; background: var(--border); border-radius: 4px 4px 0 0; min-height: 4px; position: relative; }
+.chart-bar .bar.high { background: linear-gradient(180deg, var(--blue), rgba(59,130,246,.3)); }
+
+.ring { width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 30px; font-weight: 700; color: var(--text);
+  border: 4px solid var(--border); position: relative; }
+.ring::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid transparent; }
+.ring.good { border-color: var(--safe); color: var(--safe); }
+.ring.good::before { border-color: rgba(34,197,94,.3); }
+.ring.warn { border-color: var(--warn); color: var(--warn); }
+.ring.warn::before { border-color: rgba(245,158,11,.3); }
+.ring.danger { border-color: var(--danger); color: var(--danger); animation: pulse-ring 1.5s infinite; }
+.ring.danger::before { border-color: rgba(239,68,68,.3); animation: pulse-ring2 1.5s infinite; }
+@keyframes pulse-ring { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.4); } 50% { box-shadow: 0 0 0 16px rgba(239,68,68,0); } }
+@keyframes pulse-ring2 { 0%,100% { inset: -6px; opacity: 1; } 50% { inset: -14px; opacity: 0; } }
+
+.tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; }
+.tag-blue { background: rgba(59,130,246,.15); color: var(--blue); border: 1px solid rgba(59,130,246,.3); }
+.tag-red { background: rgba(239,68,68,.15); color: var(--danger); border: 1px solid rgba(239,68,68,.3); }
+.tag-green { background: rgba(34,197,94,.15); color: var(--safe); border: 1px solid rgba(34,197,94,.3); }
+.tag-yellow { background: rgba(245,158,11,.15); color: var(--warn); border: 1px solid rgba(245,158,11,.3); }
+.tag-outline { background: transparent; color: var(--text3); border: 1px solid var(--border); }
+
+.btn { display: block; width: 100%; padding: 13px; border-radius: 12px; text-align: center;
+  font-size: 15px; font-weight: 600; cursor: pointer; transition: all .15s; border: none;
+  background: var(--bg-card); color: var(--text); border: 1px solid var(--border); }
+.btn:hover { opacity: .9; }
+.btn:active { transform: scale(.97); }
+.btn-primary { background: linear-gradient(135deg, var(--blue), var(--cyan)); color: #fff;
+  border: none; box-shadow: var(--glow); }
+.btn-danger { background: linear-gradient(135deg, #DC2626, #EF4444); color: #fff; border: none; }
+.btn-outline { background: transparent; border: 1px solid var(--blue); color: var(--blue); }
+
+/* ========== 布局工具 ========== */
+.row { display: flex; align-items: center; gap: 10px; }
+.row-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-1 { flex: 1; }
+.text-sm { font-size: 12px; color: var(--text3); }
+.text-md { font-size: 14px; color: var(--text2); line-height: 1.6; }
+.text-lg { font-size: 18px; font-weight: 600; color: var(--text); }
+.text-xl { font-size: 24px; font-weight: 700; color: var(--text); }
+.text-center { text-align: center; }
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mb-1 { margin-bottom: 8px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+
+/* ========== 头像 & 图标 ========== */
+.avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 22px; background: var(--border);
+  border: 2px solid rgba(59,130,246,.3); }
+.avatar-lg { width: 64px; height: 64px; font-size: 28px; }
+
+/* ========== 输入框 ========== */
+.input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px;
+  font-size: 14px; color: var(--text); background: rgba(15,23,42,.6); outline: none; transition: .2s; }
+.input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
+.input::placeholder { color: var(--text3); }
+
+/* ========== 进度条 ========== */
+.progress-bar { height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; }
+.progress-bar .fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--blue), var(--cyan)); }
+
+/* ========== 开关 ========== */
+.toggle { width: 44px; height: 26px; border-radius: 13px; cursor: pointer; position: relative;
+  background: var(--border); transition: background .2s; border: 1px solid rgba(255,255,255,.1); }
+.toggle.on { background: var(--blue); }
+.toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px;
+  border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.toggle.on::after { transform: translateX(18px); }
+
+/* ========== SOS ========== */
+.sos-btn { width: 130px; height: 130px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 22px; font-weight: 700; color: var(--danger);
+  margin: 0 auto; cursor: pointer; border: 4px solid var(--danger);
+  background: rgba(239,68,68,.08); animation: sos-pulse 2s infinite; }
+@keyframes sos-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.4); } 50% { box-shadow: 0 0 0 24px rgba(239,68,68,0); } }
+
+/* ========== 侧边栏 ========== */
+.sidebar {
+  width: 210px; background: var(--bg-card); border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,.3);
+  padding: 12px 0; max-height: 700px; overflow-y: auto; flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.sidebar h3 { padding: 8px 16px; font-size: 14px; color: var(--text); border-bottom: 1px solid var(--divider);
+  margin-bottom: 4px; }
+.sidebar a { display: block; padding: 6px 16px; font-size: 12px; color: var(--text2); cursor: pointer;
+  text-decoration: none; transition: all .15s; border-left: 2px solid transparent; }
+.sidebar a:hover { color: var(--blue); background: rgba(59,130,246,.06); border-left-color: var(--blue); }
+.sidebar a.current { color: var(--blue); background: rgba(59,130,246,.1); border-left-color: var(--blue); font-weight: 600; }
+.sidebar .sep { border-top: 1px solid var(--divider); margin: 4px 12px; }
+
+/* ========== 登录页渐变背景 ========== */
+.login-grad { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.login-grad::before { content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+  width: 200px; height: 200px; background: radial-gradient(circle, rgba(59,130,246,.25) 0%, transparent 70%); }
+.login-grad::after { content: ''; position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+  width: 250px; height: 100px; background: radial-gradient(ellipse, rgba(6,182,212,.12) 0%, transparent 70%); }
+
+/* ========== 告警脉冲 ========== */
+.pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--danger);
+  animation: pulse-dot 1.5s infinite; display: inline-block; }
+@keyframes pulse-dot { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.6); } 50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); } }
+
+/* 选中指示器 */
+.level-active { border-color: var(--blue) !important; background: rgba(59,130,246,.12) !important; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- ==================== 手机框 ==================== -->
+<div class="phone-frame" id="phone">
+  <div id="pageContainer"></div>
+</div>
+
+<!-- ==================== 侧边导航 ==================== -->
+<nav class="sidebar" id="sidebar">
+  <h3>📱 页面列表 (22)</h3>
+  <a data-page="login">01 登录页</a>
+  <a data-page="index">02 首页</a>
+  <a data-page="health">03 健康数据</a>
+  <a data-page="bp-detail">04 血压详情</a>
+  <a data-page="hr-detail">05 心率详情</a>
+  <a data-page="sleep-detail">06 睡眠详情</a>
+  <a data-page="sugar-detail">07 血糖详情</a>
+  <a data-page="report">08 健康报告</a>
+  <a data-page="report-detail">09 报告详情</a>
+  <a data-page="mine">10 我的</a>
+  <div class="sep"></div>
+  <a data-page="elderly-list">11 老人管理</a>
+  <a data-page="elderly-edit">12 添加编辑老人</a>
+  <a data-page="device">13 设备管理</a>
+  <a data-page="device-detail">14 设备详情</a>
+  <a data-page="alert">15 告警记录</a>
+  <a data-page="alert-detail">16 告警详情</a>
+  <a data-page="about">17 关于APP</a>
+  <div class="sep"></div>
+  <a data-page="medication">18 用药提醒</a>
+  <a data-page="medication-edit">19 添加编辑用药</a>
+  <a data-page="sos">20 紧急求助</a>
+  <a data-page="tips">21 健康知识</a>
+  <a data-page="tips-detail">22 健康知识详情</a>
+</nav>
+
+</div>
+
+<script>
+// ==================== 工具函数 ====================
+function h(tag, attrs, ...children) {
+  const el = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === 'className') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (k === 'style') Object.assign(el.style, v);
+    else if (k === 'type') el.setAttribute(k, v);
+    else if (k === 'placeholder') el.setAttribute(k, v);
+    else el.setAttribute(k, v);
+  });
+  children.forEach(c => {
+    if (typeof c === 'string') el.appendChild(document.createTextNode(c));
+    else if (c instanceof Node) el.appendChild(c);
+    else if (Array.isArray(c)) c.forEach(x => el.appendChild(typeof x === 'string' ? document.createTextNode(x) : x));
+  });
+  return el;
+}
+
+// ==================== 导航系统 ====================
+const historyStack = [];
+
+function navigateTo(pageId) {
+  const container = document.getElementById('pageContainer');
+  const oldPage = container.querySelector('.page.active');
+  const oldId = oldPage ? oldPage.id : null;
+  if (oldId === pageId) return;
+  if (oldId) historyStack.push(oldId);
+
+  let page = document.getElementById(pageId);
+  if (!page) { page = buildPage(pageId); container.appendChild(page); }
+  if (oldPage) oldPage.classList.remove('active', 'slide-in', 'slide-back');
+  page.classList.add('active', 'slide-in');
+  setTimeout(() => page.classList.remove('slide-in'), 300);
+  updateSidebar(pageId);
+  page.scrollTop = 0;
+}
+
+function goBack() {
+  if (historyStack.length === 0) return;
+  const prevId = historyStack.pop();
+  const container = document.getElementById('pageContainer');
+  const oldPage = container.querySelector('.page.active');
+  let page = document.getElementById(prevId);
+  if (!page) { page = buildPage(prevId); container.appendChild(page); }
+  if (oldPage) oldPage.classList.remove('active', 'slide-in', 'slide-back');
+  page.classList.add('active', 'slide-back');
+  setTimeout(() => page.classList.remove('slide-back'), 300);
+  updateSidebar(prevId);
+  page.scrollTop = 0;
+}
+
+function switchTab(pageId) {
+  historyStack.length = 0;
+  const container = document.getElementById('pageContainer');
+  const oldPage = container.querySelector('.page.active');
+  if (oldPage && oldPage.id === pageId) return;
+  let page = document.getElementById(pageId);
+  if (!page) { page = buildPage(pageId); container.appendChild(page); }
+  if (oldPage) oldPage.classList.remove('active', 'slide-in', 'slide-back');
+  page.classList.add('active', 'slide-in');
+  setTimeout(() => page.classList.remove('slide-in'), 300);
+  updateSidebar(pageId);
+  page.scrollTop = 0;
+}
+
+function updateSidebar(id) {
+  document.querySelectorAll('#sidebar a').forEach(a => a.classList.toggle('current', a.dataset.page === id));
+}
+
+// ==================== 组件工厂 ====================
+function makeNav(title, showBack, rightAction) {
+  const nav = h('div', { className: 'nav' });
+  nav.appendChild(showBack
+    ? h('div', { className: 'nav-back', onClick: goBack }, '←')
+    : h('div', { className: 'nav-spacer' }));
+  nav.appendChild(h('div', { className: 'nav-title' }, title));
+  nav.appendChild(rightAction
+    ? h('div', { className: 'nav-action', onClick: rightAction.onClick }, rightAction.text)
+    : h('div', { className: 'nav-spacer' }));
+  return nav;
+}
+
+function makeTabBar(current) {
+  const tabs = [
+    { id:'index', icon:'🏠', label:'首页' }, { id:'health', icon:'❤️', label:'健康数据' },
+    { id:'report', icon:'📋', label:'健康报告' }, { id:'mine', icon:'👤', label:'我的' },
+  ];
+  return h('div', { className: 'tab-bar' },
+    ...tabs.map(t => h('button', { className: 'tab-item' + (t.id===current?' active':''), onClick:()=>switchTab(t.id) },
+      h('span',{className:'tab-icon'},t.icon), h('span',{},t.label)))
+  );
+}
+
+function card(content, opts={}) {
+  const cls = ['card'];
+  if (opts.tap) cls.push('card-tap');
+  return h('div', { className: cls.join(' '), onClick: opts.onClick || null }, content);
+}
+
+function chartBars(n, maxH) {
+  return h('div', { className: 'chart-bar', style: { height: maxH+'px' } },
+    ...Array.from({length:n},() => h('div',{className:'bar high',style:{height:(35+Math.random()*55)+'%'}})));
+}
+
+// ==================== 页面构建 ====================
+function buildPage(id) {
+  const page = h('div', { id, className: 'page' });
+
+  switch(id) {
+
+  // ===== 01 登录页 =====
+  case 'login':
+    page.appendChild(h('div', { className: 'login-grad' }));
+    page.appendChild(h('div', { className: 'status-bar' }, [h('span',{},'9:41'), h('span',{},'📶 🔋')]));
+    page.appendChild(h('div', { style: { flex:1, display:'flex', flexDirection:'column', alignItems:'center',
+      justifyContent:'center', padding:'40px 32px', gap:'20px', position:'relative', zIndex:1 } }, [
+      h('div', { style: { width:'88px', height:'88px', borderRadius:'24px',
+        background:'linear-gradient(135deg, rgba(59,130,246,.3), rgba(6,182,212,.2))',
+        display:'flex', alignItems:'center', justifyContent:'center', fontSize:'40px', marginBottom:'8px',
+        border:'1px solid rgba(59,130,246,.3)' } }, '🏥'),
+      h('div', { className: 'text-xl', style: { fontSize:'26px' } }, '智慧养老'),
+      h('div', { style: { fontSize:'14px', color:'var(--text2)', letterSpacing:'2px' } }, '健康监测平台'),
+      h('div', { style: { width:'100%', display:'flex', flexDirection:'column', gap:'14px', marginTop:'36px' } }, [
+        h('input', { className: 'input', placeholder: '手机号/账号', style: { textAlign:'center', padding:'12px' } }),
+        h('input', { className: 'input', placeholder: '密码', type:'password', style: { textAlign:'center', padding:'12px' } }),
+        h('button', { className: 'btn btn-primary', style: { marginTop:'6px', padding:'14px' },
+          onClick: () => switchTab('index') }, '登 录'),
+        h('div', { className: 'row', style: { justifyContent:'space-between', marginTop:'6px' } }, [
+          h('span', { style: { fontSize:'12px', color:'var(--text3)', cursor:'pointer' } }, '忘记密码'),
+          h('span', { style: { fontSize:'12px', color:'var(--blue)', cursor:'pointer' } }, '注册账号'),
+        ]),
+      ]),
+      h('div', { style: { position:'absolute', bottom:'36px', fontSize:'12px', color:'var(--text3)' } }, 'v1.0.0 · 离线模式'),
+    ]));
+    break;
+
+  // ===== 02 首页 =====
+  case 'index':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('首页'));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        h('div',{className:'row',style:{marginBottom:'12px'}},[
+          h('div',{className:'avatar avatar-lg'},'👴'),
+          h('div',{className:'flex-1'},[
+            h('div',{className:'text-lg'},'张爷爷'),
+            h('div',{style:{fontSize:'12px',color:'var(--text2)',marginTop:'2px'}},'男 · 78岁 · 高血压'),
+            h('div',{className:'tag tag-blue',style:{marginTop:'6px'}},'已绑定设备'),
+          ]),
+          h('span',{style:{fontSize:'22px',color:'var(--text3)',cursor:'pointer'},onClick:()=>navigateTo('elderly-list')},'›'),
+        ]),
+      ]),
+      h('div',{className:'grid-2'},[
+        card([h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'血压'),h('div',{className:'text-lg',style:{marginTop:'4px'}},'128/82'),h('div',{className:'tag tag-green',style:{marginTop:'6px'}},'正常')],{tap:true,onClick:()=>navigateTo('health')}),
+        card([h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'心率'),h('div',{className:'text-lg',style:{marginTop:'4px'}},'72 bpm'),h('div',{className:'tag tag-green',style:{marginTop:'6px'}},'正常')],{tap:true,onClick:()=>navigateTo('health')}),
+        card([h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'睡眠'),h('div',{className:'text-lg',style:{marginTop:'4px'}},'7.2h'),h('div',{className:'tag tag-green',style:{marginTop:'6px'}},'良好')],{tap:true,onClick:()=>navigateTo('health')}),
+        card([h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'血糖'),h('div',{className:'text-lg',style:{marginTop:'4px'}},'5.6'),h('div',{className:'tag tag-green',style:{marginTop:'6px'}},'正常')],{tap:true,onClick:()=>navigateTo('health')}),
+      ]),
+      h('div',{className:'grid-3'},[
+        card([h('div',{style:{fontSize:'26px',textAlign:'center'}},'🔔'),h('div',{className:'text-sm',style:{textAlign:'center',marginTop:'4px'}},'告警记录')],{tap:true,onClick:()=>navigateTo('alert')}),
+        card([h('div',{style:{fontSize:'26px',textAlign:'center'}},'💊'),h('div',{className:'text-sm',style:{textAlign:'center',marginTop:'4px'}},'用药提醒')],{tap:true,onClick:()=>navigateTo('medication')}),
+        card([h('div',{style:{fontSize:'26px',textAlign:'center'}},'📖'),h('div',{className:'text-sm',style:{textAlign:'center',marginTop:'4px'}},'健康知识')],{tap:true,onClick:()=>navigateTo('tips')}),
+      ]),
+    ]));
+    page.appendChild(makeTabBar('index'));
+    break;
+
+  // ===== 03 健康数据 =====
+  case 'health':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('健康数据'));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        h('div',{className:'row-between',style:{marginBottom:'12px'}},[
+          h('div',{className:'row',style:{gap:'8px'}},[h('span',{},'🫀'),h('span',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)'}},'血压')]),
+          h('span',{style:{fontSize:'12px',color:'var(--blue)',cursor:'pointer'},onClick:()=>navigateTo('bp-detail')},'详情 ›'),
+        ]),
+        h('div',{className:'row-between'},[
+          h('div',{},[h('div',{className:'text-xl'},'128/82'),h('div',{className:'tag tag-green',style:{marginTop:'6px'}},'正常范围')]),
+          h('div',{className:'chart-bar',style:{height:'55px',width:'130px'}},
+            ...[70,85,60,90,75,80,65].map(v=>h('div',{className:'bar high',style:{height:v+'%'}}))),
+        ]),
+      ],{tap:true,onClick:()=>navigateTo('bp-detail')}),
+      card([
+        h('div',{className:'row-between',style:{marginBottom:'12px'}},[
+          h('div',{className:'row',style:{gap:'8px'}},[h('span',{},'💓'),h('span',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)'}},'心率')]),
+          h('span',{style:{fontSize:'12px',color:'var(--blue)',cursor:'pointer'},onClick:()=>navigateTo('hr-detail')},'详情 ›'),
+        ]),
+        h('div',{className:'row-between'},[
+          h('div',{},[h('div',{className:'text-xl'},'72 bpm'),h('div',{className:'tag tag-green',style:{marginTop:'6px'}},'正常范围')]),
+          h('div',{className:'ring good',style:{width:'65px',height:'65px',fontSize:'22px',borderWidth:'3px'}},'72'),
+        ]),
+      ],{tap:true,onClick:()=>navigateTo('hr-detail')}),
+      card([
+        h('div',{className:'row-between',style:{marginBottom:'12px'}},[
+          h('div',{className:'row',style:{gap:'8px'}},[h('span',{},'😴'),h('span',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)'}},'睡眠')]),
+          h('span',{style:{fontSize:'12px',color:'var(--blue)',cursor:'pointer'},onClick:()=>navigateTo('sleep-detail')},'详情 ›'),
+        ]),
+        h('div',{className:'row-between'},[
+          h('div',{},[h('div',{className:'text-xl'},'7.2h'),h('div',{className:'tag tag-green',style:{marginTop:'6px'}},'质量良好')]),
+          h('div',{style:{width:'120px',display:'flex',gap:'2px',alignItems:'flex-end',height:'40px'}},
+            ...[70,50,80,45,65,55,75].map(v=>h('div',{style:{flex:1,borderRadius:'3px',
+              background:v>60?'linear-gradient(180deg,var(--blue),rgba(59,130,246,.3))':'var(--border)',height:v+'%'}}))),
+        ]),
+      ],{tap:true,onClick:()=>navigateTo('sleep-detail')}),
+      card([
+        h('div',{className:'row-between',style:{marginBottom:'12px'}},[
+          h('div',{className:'row',style:{gap:'8px'}},[h('span',{},'🩸'),h('span',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)'}},'血糖')]),
+          h('span',{style:{fontSize:'12px',color:'var(--blue)',cursor:'pointer'},onClick:()=>navigateTo('sugar-detail')},'详情 ›'),
+        ]),
+        h('div',{className:'row-between'},[
+          h('div',{},[h('div',{className:'text-xl'},'5.6 mmol/L'),h('div',{className:'tag tag-green',style:{marginTop:'6px'}},'空腹·正常')]),
+          h('div',{className:'progress-bar',style:{width:'110px',height:'10px'}},[h('div',{className:'fill',style:{width:'55%'}})]),
+        ]),
+      ],{tap:true,onClick:()=>navigateTo('sugar-detail')}),
+    ]));
+    page.appendChild(makeTabBar('health'));
+    break;
+
+  // ===== 04 血压详情 =====
+  case 'bp-detail':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('血压详情',true));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'今日血压'),
+        h('div',{style:{fontSize:'28px',fontWeight:700,color:'var(--text)',marginTop:'4px'}},'128 / 82 mmHg'),
+        h('div',{className:'tag tag-green',style:{marginTop:'6px'}},'正常范围'),
+        h('div',{className:'row',style:{gap:'16px',marginTop:'14px'}},[
+          h('div',{className:'flex-1'},[h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'收缩压'),h('div',{className:'progress-bar',style:{marginTop:'4px'}},[h('div',{className:'fill',style:{width:'60%',background:'var(--safe)'}})]),h('div',{style:{fontSize:'12px',color:'var(--text2)',marginTop:'2px'}},'128 mmHg')]),
+          h('div',{className:'flex-1'},[h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'舒张压'),h('div',{className:'progress-bar',style:{marginTop:'4px'}},[h('div',{className:'fill',style:{width:'50%',background:'var(--safe)'}})]),h('div',{style:{fontSize:'12px',color:'var(--text2)',marginTop:'2px'}},'82 mmHg')]),
+        ]),
+        h('div',{className:'grid-4',style:{marginTop:'14px'}},[
+          h('div',{style:{textAlign:'center',padding:'8px 4px',border:'1px solid var(--border)',borderRadius:'8px',fontSize:'11px',color:'var(--text3)'}},'偏低<br><span style="fontSize:10px"><90/60</span>'),
+          h('div',{className:'level-active',style:{textAlign:'center',padding:'8px 4px',border:'1px solid var(--blue)',borderRadius:'8px',fontSize:'11px',color:'var(--safe)'}},'正常<br><span style="fontSize:10px">90-139</span>'),
+          h('div',{style:{textAlign:'center',padding:'8px 4px',border:'1px solid var(--border)',borderRadius:'8px',fontSize:'11px',color:'var(--text3)'}},'偏高<br><span style="fontSize:10px">140-159</span>'),
+          h('div',{style:{textAlign:'center',padding:'8px 4px',border:'1px solid var(--border)',borderRadius:'8px',fontSize:'11px',color:'var(--text3)'}},'高危<br><span style="fontSize:10px">≥160</span>'),
+        ]),
+      ]),
+      card([h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'10px'}},'近7天趋势'),
+        chartBars(7,110)]),
+      ...[
+        ['06/07 08:30','128/82','正常','green'],
+        ['06/06 08:15','132/85','正常','green'],
+        ['06/05 08:40','126/80','正常','green'],
+        ['06/04 08:20','135/88','偏高','yellow'],
+      ].map(([t,v,s,c])=>card([h('div',{className:'row-between'},[
+        h('span',{className:'text-md'},t),h('span',{style:{fontSize:'15px',color:'var(--text)',fontWeight:600}},v),
+        h('span',{className:'tag tag-'+c},s)])])),
+    ]));
+    break;
+
+  // ===== 05 心率详情 =====
+  case 'hr-detail':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('心率详情',true));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'今日心率'),
+        h('div',{style:{display:'flex',justifyContent:'center',marginTop:'12px'}},[
+          h('div',{className:'ring good',style:{width:'110px',height:'110px',fontSize:'34px',borderWidth:'4px'}},'72'),
+        ]),
+        h('div',{className:'text-center text-md',style:{marginTop:'10px'}},'bpm · 正常范围'),
+        h('div',{style:{marginTop:'14px',position:'relative',height:'22px',borderRadius:'11px',overflow:'hidden',
+          background:'linear-gradient(90deg, rgba(34,197,94,.25) 0%, rgba(34,197,94,.25) 25%, rgba(59,130,246,.2) 25%, rgba(59,130,246,.2) 75%, rgba(239,68,68,.25) 75%, rgba(239,68,68,.25) 100%)'}},[
+          h('div',{style:{position:'absolute',left:'46%',top:'-3px',width:'12px',height:'28px',borderRadius:'3px',
+            background:'var(--blue)',border:'2px solid #fff',boxShadow:'0 0 8px rgba(59,130,246,.5)'}}),
+        ]),
+        h('div',{className:'row-between',style:{fontSize:'10px',color:'var(--text3)',marginTop:'4px'}},[
+          h('span',{},'<60'),h('span',{},'60-100'),h('span',{},'>100')]),
+      ]),
+      card([h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'10px'}},'近7天趋势'),
+        chartBars(7,110)]),
+      ...[['06/07 08:30','72 bpm','正常','green'],['06/06 08:15','75 bpm','正常','green'],['06/05 08:40','68 bpm','正常','green'],['06/04 08:20','82 bpm','正常','green']]
+        .map(([t,v,s,c])=>card([h('div',{className:'row-between'},[h('span',{className:'text-md'},t),h('span',{style:{fontSize:'15px',color:'var(--text)',fontWeight:600}},v),h('span',{className:'tag tag-'+c},s)])])),
+    ]));
+    break;
+
+  // ===== 06 睡眠详情 =====
+  case 'sleep-detail':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('睡眠详情',true));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'昨夜睡眠'),
+        h('div',{className:'text-xl',style:{marginTop:'4px'}},'7小时 12分钟'),
+        h('div',{className:'tag tag-green',style:{marginTop:'6px'}},'睡眠质量：良好'),
+        h('div',{style:{marginTop:'14px',display:'flex',height:'28px',borderRadius:'8px',overflow:'hidden',
+          border:'1px solid var(--border)'}},[
+          h('div',{style:{width:'55%',background:'linear-gradient(90deg,var(--blue),rgba(59,130,246,.6))',
+            display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',color:'#fff',fontWeight:500}},'深睡 3h58m'),
+          h('div',{style:{width:'30%',background:'rgba(59,130,246,.35)',
+            display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',color:'#fff'}},'浅睡 2h10m'),
+          h('div',{style:{width:'15%',background:'var(--border)',
+            display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',color:'var(--text3)'}},'清醒'),
+        ]),
+        h('div',{className:'grid-3',style:{marginTop:'14px'}},[
+          h('div',{style:{textAlign:'center',padding:'10px',border:'1px solid var(--border)',borderRadius:'10px'}},[h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'入睡'),h('div',{style:{fontSize:'16px',fontWeight:600,color:'var(--text)',marginTop:'4px'}},'22:30')]),
+          h('div',{style:{textAlign:'center',padding:'10px',border:'1px solid var(--border)',borderRadius:'10px'}},[h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'起床'),h('div',{style:{fontSize:'16px',fontWeight:600,color:'var(--text)',marginTop:'4px'}},'06:15')]),
+          h('div',{style:{textAlign:'center',padding:'10px',border:'1px solid var(--border)',borderRadius:'10px'}},[h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'翻身'),h('div',{style:{fontSize:'16px',fontWeight:600,color:'var(--text)',marginTop:'4px'}},'8次')]),
+        ]),
+      ]),
+      card([h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'10px'}},'近7天趋势'),
+        chartBars(7,110)]),
+      ...[['06/06','7.2h','良好','green'],['06/05','6.8h','良好','green'],['06/04','8.1h','优秀','green'],['06/03','5.5h','一般','yellow']]
+        .map(([t,v,s,c])=>card([h('div',{className:'row-between'},[h('span',{className:'text-md'},t),h('span',{style:{fontSize:'15px',color:'var(--text)',fontWeight:600}},v),h('span',{className:'tag tag-'+c},s)])])),
+    ]));
+    break;
+
+  // ===== 07 血糖详情 =====
+  case 'sugar-detail':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('血糖详情',true));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'最新血糖'),
+        h('div',{className:'text-xl',style:{marginTop:'4px'}},'5.6 mmol/L'),
+        h('div',{className:'tag tag-green',style:{marginTop:'6px'}},'空腹 · 正常'),
+        h('div',{style:{marginTop:'14px',position:'relative',height:'14px',borderRadius:'7px',overflow:'hidden',
+          background:'linear-gradient(90deg, rgba(34,197,94,.25) 0%, rgba(34,197,94,.25) 30%, rgba(59,130,246,.2) 30%, rgba(59,130,246,.2) 70%, rgba(239,68,68,.25) 70%, rgba(239,68,68,.25) 100%)'}},[
+          h('div',{style:{position:'absolute',left:'42%',top:'-5px',width:'14px',height:'24px',borderRadius:'3px',
+            background:'var(--blue)',border:'2px solid #fff',boxShadow:'0 0 8px rgba(59,130,246,.5)'}}),
+        ]),
+        h('div',{className:'row-between',style:{fontSize:'10px',color:'var(--text3)',marginTop:'4px'}},[h('span',{},'<3.9'),h('span',{},'3.9-6.1'),h('span',{},'>6.1')]),
+      ]),
+      h('div',{className:'grid-4'},[
+        h('div',{style:{textAlign:'center',padding:'8px 4px',border:'1px solid var(--border)',borderRadius:'8px',fontSize:'11px',color:'var(--text3)'}},'低血糖<br><span style="fontSize:10px"><3.9</span>'),
+        h('div',{className:'level-active',style:{textAlign:'center',padding:'8px 4px',border:'1px solid var(--blue)',borderRadius:'8px',fontSize:'11px',color:'var(--safe)'}},'正常<br><span style="fontSize:10px">3.9-6.1</span>'),
+        h('div',{style:{textAlign:'center',padding:'8px 4px',border:'1px solid var(--border)',borderRadius:'8px',fontSize:'11px',color:'var(--text3)'}},'偏高<br><span style="fontSize:10px">6.1-7.0</span>'),
+        h('div',{style:{textAlign:'center',padding:'8px 4px',border:'1px solid var(--border)',borderRadius:'8px',fontSize:'11px',color:'var(--text3)'}},'高血糖<br><span style="fontSize:10px">>7.0</span>'),
+      ]),
+      card([h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'10px'}},'近7天趋势'),
+        chartBars(7,110)]),
+      ...[['06/07 空腹','5.6','正常','green'],['06/06 空腹','5.8','正常','green'],['06/05 餐后','7.2','偏高','yellow'],['06/04 空腹','5.3','正常','green']]
+        .map(([t,v,s,c])=>card([h('div',{className:'row-between'},[h('span',{className:'text-md'},t),h('span',{className:'tag tag-blue',style:{fontSize:'10px'}},t.split(' ')[1]),h('span',{style:{fontSize:'15px',color:'var(--text)',fontWeight:600}},v),h('span',{className:'tag tag-'+c},s)])])),
+    ]));
+    break;
+
+  // ===== 08 健康报告 =====
+  case 'report':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('健康报告'));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        h('div',{className:'row-between',style:{marginBottom:'10px'}},[
+          h('span',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)'}},'报告模式'),
+          h('div',{className:'row',style:{gap:'0'}},[
+            h('span',{className:'tag tag-blue',style:{borderRadius:'6px 0 0 6px'}},'离线报告'),
+            h('span',{style:{padding:'3px 10px',border:'1px solid var(--border)',borderRadius:'0 6px 6px 0',fontSize:'11px',color:'var(--text3)'}},'AI智能'),
+          ]),
+        ]),
+      ]),
+      card([
+        h('div',{className:'row',style:{gap:'8px',marginBottom:'8px'}},[h('span',{},'📋'),h('span',{style:{fontSize:'16px',fontWeight:600,color:'var(--text)'}},'今日简报')]),
+        h('div',{style:{fontSize:'12px',color:'var(--text2)'}},'2026年06月07日'),
+        h('div',{style:{fontSize:'14px',color:'var(--text2)',marginTop:'10px',lineHeight:'1.8'}},'今日血压128/82mmHg，心率72次/分，各项指标均在正常范围内。昨夜睡眠7.2小时，质量良好。空腹血糖5.6mmol/L，正常。'),
+        h('div',{className:'row',style:{marginTop:'10px',gap:'6px',padding:'10px',background:'rgba(239,68,68,.08)',borderRadius:'8px',border:'1px solid rgba(239,68,68,.2)'}},[
+          h('span',{},'⚠️'),h('span',{style:{fontSize:'13px',color:'var(--danger)',fontWeight:600}},'存在异常指标，请关注'),
+        ]),
+      ],{tap:true,onClick:()=>navigateTo('report-detail')}),
+      card([
+        h('div',{className:'row',style:{gap:'8px',marginBottom:'8px'}},[h('span',{},'📅'),h('span',{style:{fontSize:'16px',fontWeight:600,color:'var(--text)'}},'本周小结')]),
+        h('div',{style:{fontSize:'12px',color:'var(--text2)'}},'06/01 - 06/07'),
+        h('div',{style:{fontSize:'14px',color:'var(--text2)',marginTop:'10px',lineHeight:'1.8'}},'本周血压平均131/84mmHg，有2次偏高记录。心率平均73次/分，均在正常范围。睡眠平均7.0小时，血糖平均5.7mmol/L。'),
+      ]),
+      h('div',{className:'text-center',style:{padding:'20px 0',fontSize:'12px',color:'var(--text3)'}},'💡 AI 智能报告需联网使用，当前为离线模式'),
+    ]));
+    page.appendChild(makeTabBar('report'));
+    break;
+
+  // ===== 09 报告详情 =====
+  case 'report-detail':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('报告详情',true));
+    page.appendChild(h('div',{className:'content'},[
+      h('div',{className:'row',style:{gap:'0',background:'var(--bg-card)',borderRadius:'10px',border:'1px solid var(--border)',overflow:'hidden'}},[
+        h('div',{style:{flex:1,textAlign:'center',padding:'10px',background:'rgba(59,130,246,.12)',color:'var(--blue)',fontSize:'13px',fontWeight:600,cursor:'pointer'}},'日报'),
+        h('div',{style:{flex:1,textAlign:'center',padding:'10px',color:'var(--text3)',fontSize:'13px',cursor:'pointer'}},'周报'),
+        h('div',{style:{flex:1,textAlign:'center',padding:'10px',color:'var(--text3)',fontSize:'13px',cursor:'pointer'}},'AI报告'),
+      ]),
+      card([
+        h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'12px'}},'今日数据详情'),
+        h('div',{className:'grid-2'},[
+          h('div',{style:{padding:'12px',border:'1px solid var(--border)',borderRadius:'10px'}},[h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'血压'),h('div',{style:{fontSize:'18px',fontWeight:600,color:'var(--text)',marginTop:'4px'}},'128/82'),h('div',{className:'tag tag-green',style:{marginTop:'4px'}},'正常')]),
+          h('div',{style:{padding:'12px',border:'1px solid var(--border)',borderRadius:'10px'}},[h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'心率'),h('div',{style:{fontSize:'18px',fontWeight:600,color:'var(--text)',marginTop:'4px'}},'72 bpm'),h('div',{className:'tag tag-green',style:{marginTop:'4px'}},'正常')]),
+          h('div',{style:{padding:'12px',border:'1px solid var(--border)',borderRadius:'10px'}},[h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'睡眠'),h('div',{style:{fontSize:'18px',fontWeight:600,color:'var(--text)',marginTop:'4px'}},'7.2h'),h('div',{className:'tag tag-green',style:{marginTop:'4px'}},'良好')]),
+          h('div',{style:{padding:'12px',border:'1px solid var(--border)',borderRadius:'10px'}},[h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'血糖'),h('div',{style:{fontSize:'18px',fontWeight:600,color:'var(--text)',marginTop:'4px'}},'5.6'),h('div',{className:'tag tag-green',style:{marginTop:'4px'}},'正常')]),
+        ]),
+      ]),
+      card([h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'10px'}},'血压趋势'),chartBars(7,90)]),
+      card([h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'10px'}},'心率趋势'),chartBars(7,90)]),
+      h('button',{className:'btn btn-outline',onClick:()=>{}},'📤 分享报告'),
+    ]));
+    break;
+
+  // ===== 10 我的 =====
+  case 'mine':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('我的'));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        h('div',{className:'row',style:{gap:'12px'}},[
+          h('div',{className:'avatar avatar-lg'},'👤'),
+          h('div',{className:'flex-1'},[
+            h('div',{className:'text-lg'},'用户昵称'),
+            h('div',{style:{fontSize:'12px',color:'var(--text2)',marginTop:'4px'}},'手机号: 138****8888'),
+          ]),
+          h('span',{style:{fontSize:'20px',color:'var(--text3)'}},'›'),
+        ]),
+      ]),
+      ...[
+        {icon:'👴',label:'老人管理',page:'elderly-list',badge:''},
+        {icon:'📱',label:'设备管理',page:'device',badge:'2台'},
+        {icon:'🔔',label:'告警记录',page:'alert',badge:'3条'},
+        {icon:'💊',label:'用药提醒',page:'medication',badge:''},
+        {icon:'🆘',label:'紧急求助',page:'sos',badge:''},
+        {icon:'📖',label:'健康知识',page:'tips',badge:''},
+        {icon:'ℹ️',label:'关于APP',page:'about',badge:'v1.0.0'},
+      ].map(item=>card([
+        h('div',{className:'row-between'},[
+          h('div',{className:'row',style:{gap:'12px'}},[h('span',{style:{fontSize:'20px'}},item.icon),h('span',{style:{fontSize:'15px',color:'var(--text)'}},item.label)]),
+          h('div',{className:'row',style:{gap:'6px'}},[
+            item.badge?h('span',{style:{fontSize:'12px',color:'var(--text3)'}},item.badge):null,
+            h('span',{style:{fontSize:'16px',color:'var(--text3)'}},'›'),
+          ]),
+        ]),
+      ],{tap:true,onClick:()=>navigateTo(item.page)})),
+    ]));
+    page.appendChild(makeTabBar('mine'));
+    break;
+
+  // ===== 11 老人管理 =====
+  case 'elderly-list':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('老人管理',true,{text:'+ 添加',onClick:()=>navigateTo('elderly-edit')}));
+    page.appendChild(h('div',{className:'content'},[
+      ...[{name:'张爷爷',age:78,gender:'男',tag:'高血压',active:true},{name:'李奶奶',age:72,gender:'女',tag:'糖尿病',active:false}]
+        .map(e=>card([
+          h('div',{className:'row-between'},[
+            h('div',{className:'row',style:{gap:'12px'}},[
+              h('div',{className:'avatar'},e.gender==='男'?'👴':'👵'),
+              h('div',{},[h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)'}},e.name),
+                h('div',{style:{fontSize:'12px',color:'var(--text2)',marginTop:'2px'}},e.gender+' · '+e.age+'岁 · '+e.tag)]),
+            ]),
+            e.active?h('div',{className:'tag tag-blue'},'当前'):null,
+          ]),
+        ],{tap:true,onClick:()=>navigateTo('elderly-edit')})),
+    ]));
+    break;
+
+  // ===== 12 添加编辑老人 =====
+  case 'elderly-edit':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('编辑老人信息',true,{text:'保存',onClick:()=>goBack()}));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',marginBottom:'20px'}},[
+          h('div',{className:'avatar avatar-lg'},'👴'),
+          h('span',{style:{fontSize:'12px',color:'var(--blue)',cursor:'pointer'}},'点击更换头像'),
+        ]),
+        ...['姓名','年龄','性别','手机号'].map(label=>
+          h('div',{className:'row-between',style:{padding:'12px 0',borderBottom:'1px solid var(--divider)'}},[
+            h('span',{style:{fontSize:'14px',color:'var(--text)'}},label),
+            h('input',{className:'input',style:{width:'60%',textAlign:'right',border:'none',padding:'4px 8px',background:'transparent'},placeholder:label==='姓名'?'张爷爷':label==='年龄'?'78':label==='性别'?'男':'138****8888'}),
+          ])
+        ),
+        h('div',{className:'row-between',style:{padding:'12px 0'}},[
+          h('span',{style:{fontSize:'14px',color:'var(--text)'}},'健康标签'),
+          h('div',{className:'row',style:{gap:'6px'}},[
+            h('span',{className:'tag tag-blue'},'高血压'),
+            h('span',{className:'tag tag-outline',style:{cursor:'pointer'}},'+ 添加'),
+          ]),
+        ]),
+      ]),
+    ]));
+    break;
+
+  // ===== 13 设备管理 =====
+  case 'device':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('设备管理',true,{text:'扫描',onClick:()=>{}}));
+    page.appendChild(h('div',{className:'content'},[
+      ...[{name:'血压计',type:'欧姆龙 HEM-7124',status:'已连接',icon:'🩺'},{name:'心率手环',type:'小米手环 8',status:'已连接',icon:'⌚'},{name:'血糖仪',type:'三诺 GA-3',status:'未连接',icon:'🩸'}]
+        .map(d=>card([
+          h('div',{className:'row-between'},[
+            h('div',{className:'row',style:{gap:'12px'}},[
+              h('div',{className:'avatar'},d.icon),
+              h('div',{},[h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)'}},d.name),h('div',{style:{fontSize:'12px',color:'var(--text2)',marginTop:'2px'}},d.type)]),
+            ]),
+            h('span',{className:'tag '+(d.status==='已连接'?'tag-green':'tag-yellow')},d.status),
+          ]),
+        ],{tap:true,onClick:()=>navigateTo('device-detail')})),
+    ]));
+    break;
+
+  // ===== 14 设备详情 =====
+  case 'device-detail':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('设备详情',true));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',padding:'12px 0'}},[
+          h('div',{className:'avatar avatar-lg'},'🩺'),
+          h('div',{className:'text-lg'},'血压计'),
+          h('div',{style:{fontSize:'12px',color:'var(--text2)'}},'欧姆龙 HEM-7124'),
+          h('div',{className:'tag tag-green'},'已连接'),
+        ]),
+      ]),
+      card([
+        h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'10px'}},'设备信息'),
+        ...[['设备类型','血压计'],['设备ID','BP-2024001'],['绑定时间','2024-01-15'],['最后数据','2026-06-07 08:30']]
+          .map(([k,v])=>h('div',{className:'row-between',style:{padding:'8px 0',borderBottom:'1px solid var(--divider)'}},[
+            h('span',{style:{fontSize:'13px',color:'var(--text3)'}},k),h('span',{style:{fontSize:'14px',color:'var(--text)'}},v)]))),
+      ]),
+      card([
+        h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'10px'}},'最近数据'),
+        ...[['06/07 08:30','128/82','正常'],['06/06 08:15','132/85','正常']]
+          .map(([t,v,s])=>h('div',{className:'row-between',style:{padding:'6px 0'}},[
+            h('span',{style:{fontSize:'13px',color:'var(--text2)'}},t),h('span',{style:{fontSize:'14px',color:'var(--text)',fontWeight:600}},v),h('span',{className:'tag tag-green'},s)]))),
+      ]),
+      h('button',{className:'btn btn-danger',style:{marginTop:'16px'},onClick:()=>{alert('⚠️ 确认解绑设备？')}},'解绑设备'),
+    ]));
+    break;
+
+  // ===== 15 告警记录 =====
+  case 'alert':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('告警记录',true));
+    page.appendChild(h('div',{className:'content'},[
+      ...[{type:'danger',title:'血压异常升高',time:'2026-06-07 08:30',desc:'收缩压160mmHg，舒张压95mmHg',read:false},
+         {type:'warn',title:'心率偏高',time:'2026-06-06 14:20',desc:'心率105次/分，超过正常范围',read:false},
+         {type:'danger',title:'跌倒检测',time:'2026-06-05 10:15',desc:'检测到疑似跌倒事件',read:true},
+         {type:'warn',title:'血糖偏高',time:'2026-06-04 09:00',desc:'餐后血糖7.8mmol/L',read:true}]
+        .map(a=>card([
+          h('div',{className:'row-between',style:{marginBottom:'6px'}},[
+            h('div',{className:'row',style:{gap:'8px'}},[
+              a.type==='danger'?h('span',{className:'pulse-dot'}):h('span',{style:{fontSize:'18px'}},'🟡'),
+              h('span',{style:{fontSize:'15px',fontWeight:600,color:a.type==='danger'?'var(--danger)':'var(--warn)'}},a.title),
+            ]),
+            h('span',{className:'tag '+(a.read?'':'tag-red')},a.read?'已读':'未读'),
+          ]),
+          h('div',{style:{fontSize:'12px',color:'var(--text3)'}},a.time),
+          h('div',{style:{fontSize:'14px',color:'var(--text2)',marginTop:'6px'}},a.desc),
+        ],{tap:true,onClick:()=>navigateTo('alert-detail')})),
+    ]));
+    break;
+
+  // ===== 16 告警详情 =====
+  case 'alert-detail':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('告警详情',true,{text:'标记已读',onClick:()=>goBack()}));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',padding:'20px 0'}},[
+          h('span',{style:{fontSize:'52px'}},'🔴'),
+          h('div',{style:{fontSize:'18px',fontWeight:600,color:'var(--danger)'}},'血压异常升高'),
+          h('div',{className:'tag tag-red',style:{padding:'4px 14px',fontSize:'12px'}},'紧急告警'),
+        ]),
+      ]),
+      card([
+        h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'10px'}},'告警内容'),
+        h('div',{style:{fontSize:'14px',color:'var(--text2)',lineHeight:'1.8'}},'检测到血压异常升高：收缩压160mmHg，舒张压95mmHg。已超出正常范围，请及时关注并采取相应措施。'),
+      ]),
+      card([
+        h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'10px'}},'关联数据'),
+        h('div',{className:'grid-2'},[
+          h('div',{style:{padding:'12px',border:'1px solid var(--border)',borderRadius:'10px'}},[h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'收缩压'),h('div',{style:{fontSize:'22px',fontWeight:700,color:'var(--danger)',marginTop:'4px'}},'160')]),
+          h('div',{style:{padding:'12px',border:'1px solid var(--border)',borderRadius:'10px'}},[h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'舒张压'),h('div',{style:{fontSize:'22px',fontWeight:700,color:'var(--danger)',marginTop:'4px'}},'95')]),
+        ]),
+      ]),
+      card([
+        h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'10px'}},'处理建议'),
+        ...['立即休息，保持平静','30分钟后复测血压','如持续升高，请及时就医','按时服用降压药物'].map((s,i)=>
+          h('div',{className:'row',style:{gap:'10px',padding:'7px 0'}},[
+            h('span',{style:{width:'22px',height:'22px',borderRadius:'50%',border:'1px solid var(--blue)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',color:'var(--blue)',flexShrink:0}},(i+1)),
+            h('span',{style:{fontSize:'14px',color:'var(--text2)'}},s),
+          ])),
+      ]),
+    ]));
+    break;
+
+  // ===== 17 关于APP =====
+  case 'about':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('关于APP',true));
+    page.appendChild(h('div',{className:'content'},[
+      h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',padding:'36px 0',gap:'14px'}},[
+        h('div',{style:{width:'84px',height:'84px',borderRadius:'22px',
+          background:'linear-gradient(135deg, rgba(59,130,246,.3), rgba(6,182,212,.2))',
+          display:'flex',alignItems:'center',justifyContent:'center',fontSize:'38px',
+          border:'1px solid rgba(59,130,246,.3)'}},'🏥'),
+        h('div',{className:'text-lg'},'智慧养老健康监测'),
+        h('div',{style:{fontSize:'12px',color:'var(--text3)'}},'v1.0.0'),
+      ]),
+      card([
+        ...['版本号: v1.0.0','构建: 2024.001','平台: Android','框架: uni-app (Vue 3)','模式: 离线运行'].map(t=>
+          h('div',{className:'row-between',style:{padding:'10px 0',borderBottom:'1px solid var(--divider)'}},[
+            h('span',{style:{fontSize:'13px',color:'var(--text3)'}},t.split(':')[0]),h('span',{style:{fontSize:'14px',color:'var(--text)'}},t.split(':')[1])])),
+      ]),
+      h('div',{className:'text-center',style:{padding:'28px 0',fontSize:'12px',color:'var(--text3)'}},'Copyright © 2024 智慧养老'),
+    ]));
+    break;
+
+  // ===== 18 用药提醒 =====
+  case 'medication':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('用药提醒',true,{text:'+ 添加',onClick:()=>navigateTo('medication-edit')}));
+    page.appendChild(h('div',{className:'content'},[
+      ...['早上','中午','晚上'].map(time=>h('div',{},[
+        h('div',{style:{fontSize:'12px',color:'var(--text3)',padding:'4px 0',fontWeight:600}},'🌅 '+time),
+        ...[time==='早上'?{name:'降压药',dosage:'1片/次',t:'08:00',taken:true}:null,
+           time==='中午'?{name:'降糖药',dosage:'2片/次',t:'12:30',taken:false}:null,
+           time==='晚上'?{name:'降压药',dosage:'1片/次',t:'20:00',taken:false}:null]
+          .filter(Boolean).map(m=>card([
+            h('div',{className:'row-between'},[
+              h('div',{},[h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)'}},m.name),
+                h('div',{style:{fontSize:'12px',color:'var(--text2)',marginTop:'2px'}},m.dosage+' · '+m.t)]),
+              h('div',{className:'row',style:{gap:'8px'}},[
+                h('span',{style:{fontSize:'12px',color:'var(--blue)',cursor:'pointer',padding:'4px 10px',border:'1px solid rgba(59,130,246,.4)',borderRadius:'6px'},
+                  onClick:(e)=>{e.stopPropagation();navigateTo('medication-edit')}},'编辑'),
+                h('span',{className:'tag '+(m.taken?'tag-green':'tag-yellow')},m.taken?'已服用':'待服用'),
+              ]),
+            ]),
+          ])),
+      ]))),
+    ]));
+    break;
+
+  // ===== 19 添加编辑用药 =====
+  case 'medication-edit':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('编辑用药',true,{text:'保存',onClick:()=>goBack()}));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        ...['药品名称','用量'].map(label=>
+          h('div',{className:'row-between',style:{padding:'12px 0',borderBottom:'1px solid var(--divider)'}},[
+            h('span',{style:{fontSize:'14px',color:'var(--text)'}},label),
+            h('input',{className:'input',style:{width:'60%',textAlign:'right',border:'none',padding:'4px 8px',background:'transparent'},placeholder:label==='药品名称'?'降压药':'1片/次'}),
+          ])),
+        h('div',{className:'row-between',style:{padding:'12px 0',borderBottom:'1px solid var(--divider)'}},[
+          h('span',{style:{fontSize:'14px',color:'var(--text)'}},'时段'),
+          h('div',{className:'row',style:{gap:'0'}},[h('span',{className:'tag tag-blue',style:{borderRadius:'6px 0 0 6px'}},'早上'),h('span',{className:'tag tag-outline',style:{borderRadius:'0'}},'中午'),h('span',{className:'tag tag-outline',style:{borderRadius:'0 6px 6px 0'}},'晚上')]),
+        ]),
+        h('div',{className:'row-between',style:{padding:'12px 0',borderBottom:'1px solid var(--divider)'}},[
+          h('span',{style:{fontSize:'14px',color:'var(--text)'}},'时间'),
+          h('div',{className:'row',style:{gap:'4px',fontSize:'14px',color:'var(--text)'}},[h('span',{className:'tag'},'08'),h('span',{},':'),h('span',{className:'tag'},'00')]),
+        ]),
+        h('div',{className:'row-between',style:{padding:'12px 0',borderBottom:'1px solid var(--divider)'}},[
+          h('span',{style:{fontSize:'14px',color:'var(--text)'}},'天数'),
+          h('div',{className:'row',style:{gap:'6px'}},[h('span',{className:'tag tag-outline'},'7天'),h('span',{className:'tag tag-outline'},'14天'),h('span',{className:'tag tag-blue'},'30天'),h('span',{className:'tag tag-outline'},'90天')]),
+        ]),
+        h('div',{className:'row-between',style:{padding:'12px 0'}},[
+          h('span',{style:{fontSize:'14px',color:'var(--text)'}},'备注'),
+          h('textarea',{className:'input',style:{width:'60%',height:'50px',textAlign:'right',border:'1px solid var(--border)',borderRadius:'8px',resize:'none',background:'transparent'},placeholder:'选填'}),
+        ]),
+      ]),
+      card([
+        h('div',{style:{fontSize:'12px',color:'var(--text3)',marginBottom:'10px'}},'提醒预览'),
+        h('div',{className:'row',style:{gap:'12px',padding:'10px',background:'rgba(15,23,42,.4)',borderRadius:'10px',border:'1px solid var(--border)'}},[
+          h('span',{style:{fontSize:'26px'}},'💊'),
+          h('div',{className:'flex-1'},[h('div',{style:{fontSize:'14px',fontWeight:600,color:'var(--text)'}},'降压药'),h('div',{style:{fontSize:'12px',color:'var(--text2)',marginTop:'2px'}},'每天 08:00 · 1片/次 · 30天')]),
+          h('div',{className:'toggle on'}),
+        ]),
+      ]),
+    ]));
+    break;
+
+  // ===== 20 紧急求助 =====
+  case 'sos':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('紧急求助',true));
+    page.appendChild(h('div',{className:'content'},[
+      h('div',{style:{padding:'44px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:'18px'}},[
+        h('button',{className:'sos-btn',onClick:()=>{alert('⚠️ 模拟SOS求助：已发送位置和求助信息给紧急联系人')}},'SOS'),
+        h('div',{style:{fontSize:'14px',color:'var(--text2)',textAlign:'center'}},'长按3秒或点击发送紧急求助'),
+        h('div',{style:{fontSize:'12px',color:'var(--danger)',textAlign:'center'}},'⚠️ 请在紧急情况下使用'),
+      ]),
+      card([
+        h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',marginBottom:'12px'}},'紧急联系人'),
+        ...['儿子 · 139****1234','女儿 · 136****5678'].map(c=>
+          h('div',{className:'row-between',style:{padding:'10px 0',borderBottom:'1px solid var(--divider)'}},[
+            h('div',{className:'row',style:{gap:'10px'}},[h('div',{className:'avatar',style:{width:'38px',height:'38px',fontSize:'16px'}},'👤'),h('span',{style:{fontSize:'14px',color:'var(--text)'}},c.split(' · ')[0])]),
+            h('span',{style:{fontSize:'13px',color:'var(--text3)'}},c.split(' · ')[1]),
+          ])),
+      ]),
+    ]));
+    break;
+
+  // ===== 21 健康知识 =====
+  case 'tips':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('健康知识',true));
+    page.appendChild(h('div',{className:'content'},[
+      ...[{title:'老年人高血压防治指南',cat:'慢病管理',read:'1.2k',time:'5分钟'},
+         {title:'糖尿病饮食控制要点',cat:'饮食健康',read:'980',time:'4分钟'},
+         {title:'老年人运动建议',cat:'运动保健',read:'2.1k',time:'3分钟'},
+         {title:'睡眠质量改善方法',cat:'生活习惯',read:'1.5k',time:'6分钟'}]
+        .map(tip=>card([
+          h('div',{className:'row',style:{gap:'12px'}},[
+            h('div',{style:{width:'56px',height:'56px',borderRadius:'10px',background:'var(--border)',
+              display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px',flexShrink:0}},'📖'),
+            h('div',{className:'flex-1'},[
+              h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',lineHeight:'1.4'}},tip.title),
+              h('div',{className:'row',style:{gap:'8px',marginTop:'6px'}},[
+                h('span',{className:'tag tag-blue'},tip.cat),
+                h('span',{style:{fontSize:'11px',color:'var(--text3)'}},tip.read+'阅读'),
+                h('span',{style:{fontSize:'11px',color:'var(--text3)'}},tip.time),
+              ]),
+            ]),
+          ]),
+        ],{tap:true,onClick:()=>navigateTo('tips-detail')})),
+    ]));
+    break;
+
+  // ===== 22 健康知识详情 =====
+  case 'tips-detail':
+    page.appendChild(h('div',{className:'status-bar'},[h('span',{},'9:41'),h('span',{},'📶 🔋')]));
+    page.appendChild(makeNav('健康知识详情',true));
+    page.appendChild(h('div',{className:'content'},[
+      card([
+        h('div',{className:'tag tag-blue',style:{marginBottom:'10px'}},'慢病管理'),
+        h('div',{style:{fontSize:'18px',fontWeight:600,color:'var(--text)',lineHeight:'1.4'}},'老年人高血压防治指南'),
+        h('div',{className:'row',style:{gap:'14px',marginTop:'10px'}},[
+          h('span',{style:{fontSize:'12px',color:'var(--text3)'}},'1.2k 阅读'),
+          h('span',{style:{fontSize:'12px',color:'var(--text3)'}},'5分钟阅读'),
+        ]),
+      ]),
+      card([
+        h('div',{style:{fontSize:'14px',color:'var(--text2)',lineHeight:'2.2'}},'高血压是老年人最常见的慢性疾病之一。定期监测血压、按时服药、保持健康的生活方式是控制血压的关键。\n\n一、饮食建议\n• 低盐饮食，每日食盐不超过6g\n• 多食新鲜蔬果\n• 控制脂肪摄入\n\n二、运动建议\n• 每周至少150分钟中等强度运动\n• 散步、太极拳等低强度运动\n• 避免剧烈运动\n\n三、监测建议\n• 每天定时测量血压\n• 记录血压变化趋势\n• 发现异常及时就医'),
+      ]),
+      h('div',{style:{fontSize:'15px',fontWeight:600,color:'var(--text)',padding:'8px 0'}},'相关推荐'),
+      ...['糖尿病饮食控制要点','老年人运动建议'].map(t=>
+        card([
+          h('div',{className:'row',style:{gap:'10px'}},[
+            h('div',{style:{width:'44px',height:'44px',borderRadius:'8px',background:'var(--border)',
+              display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',flexShrink:0}},'📖'),
+            h('div',{className:'flex-1'},[h('div',{style:{fontSize:'14px',fontWeight:600,color:'var(--text)'}},t),
+              h('div',{className:'tag tag-blue',style:{fontSize:'10px',marginTop:'4px'}},'健康知识')]),
+          ]),
+        ],{tap:true,onClick:()=>{}})),
+    ]));
+    break;
+
+  default: break;
+  }
+
+  return page;
+}
+
+// ==================== 初始化 ====================
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('#sidebar a').forEach(a => {
+    a.addEventListener('click', () => {
+      const id = a.dataset.page;
+      ['index','health','report','mine'].includes(id) ? switchTab(id) : navigateTo(id);
+    });
+  });
+  navigateTo('login');
+});
+</script>
+</body>
+</html>

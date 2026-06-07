@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智慧养老健康监测 — 原型 & UI 展示</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #0B1120;
+    color: #F1F5F9;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+    background-image: radial-gradient(ellipse at 50% 0%, rgba(59,130,246,.1) 0%, transparent 60%);
+  }
+  .container { text-align: center; padding: 40px 20px; max-width: 600px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .subtitle { color: #94A3B8; font-size: 15px; margin-bottom: 48px; }
+  .cards { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+  .card {
+    flex: 1; min-width: 240px; max-width: 280px;
+    background: #1E293B; border: 1px solid #334155; border-radius: 16px;
+    padding: 32px 24px; cursor: pointer; transition: all .2s;
+    text-decoration: none; color: inherit; display: block;
+  }
+  .card:hover { border-color: #3B82F6; box-shadow: 0 0 30px rgba(59,130,246,.15); transform: translateY(-2px); }
+  .card .icon { font-size: 48px; margin-bottom: 16px; display: block; }
+  .card h2 { font-size: 20px; margin-bottom: 8px; }
+  .card p { font-size: 13px; color: #94A3B8; line-height: 1.6; }
+  .tag { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; margin-top: 12px; }
+  .tag-ui { background: rgba(59,130,246,.15); color: #3B82F6; border: 1px solid rgba(59,130,246,.3); }
+  .tag-proto { background: rgba(148,163,184,.15); color: #94A3B8; border: 1px solid rgba(148,163,184,.3); }
+  .footer { margin-top: 48px; font-size: 12px; color: #64748B; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🏥 智慧养老健康监测</h1>
+  <p class="subtitle">交互展示 · 22 个页面 · 可点击导航</p>
+
+  <div class="cards">
+    <a href="interactive-ui.html" class="card">
+      <span class="icon">🎨</span>
+      <h2>UI 交互展示</h2>
+      <p>暗色科技风主题<br>真实 UI 视觉效果<br>渐变、发光、毛玻璃</p>
+      <span class="tag tag-ui">推荐演示用</span>
+    </a>
+    <a href="interactive-prototype.html" class="card">
+      <span class="icon">📐</span>
+      <h2>原型交互展示</h2>
+      <p>线框风格原型图<br>灰度配色 + 虚线边框<br>适合设计评审</p>
+      <span class="tag tag-proto">开发评审用</span>
+    </a>
+  </div>
+
+  <p class="footer">智慧养老健康监测 APP · 22 页面交互原型</p>
+</div>
+</body>
+</html>
